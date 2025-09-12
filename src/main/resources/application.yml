@@ -1,3 +1,9 @@
 spring:
   application:
     name: backend
+  profiles:
+    active: dev
+  r2dbc:
+    url: r2dbc:pool:postgresql://localhost:5436/backend
+    username: backend
+    password: password
