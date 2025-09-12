@@ -1,9 +1,9 @@
 services:
   postgres_backend:
-    image: postgres:15
+    image: postgres:17
     ports:
-      - "5436:5432"
+      - "5432:5432"
     environment:
-      POSTGRES_DB: backend
+      POSTGRES_DB: postgres
       POSTGRES_USER: backend
       POSTGRES_PASSWORD: password

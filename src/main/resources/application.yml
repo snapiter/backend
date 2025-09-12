@@ -4,6 +4,12 @@ spring:
   profiles:
     active: dev
   r2dbc:
-    url: r2dbc:pool:postgresql://localhost:5436/backend
+    url: r2dbc:pool:postgresql://localhost:5432/postgres
     username: backend
+    password: password
+
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://localhost:5432/postgres
+    user: backend
     password: password
