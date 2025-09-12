@@ -29,6 +29,8 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("org.springframework:spring-jdbc")
 
+	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.13")
+
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -36,11 +38,20 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.postgresql:r2dbc-postgresql")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+
+
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+	}
+	testImplementation("org.mockito:mockito-core:5.19.0")
+	testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
+	testImplementation("org.mockito:mockito-inline:5.2.0") // to mock final classes
+
 }
 
 kotlin {
