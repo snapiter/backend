@@ -28,7 +28,7 @@ class TrackableControllerTest {
     lateinit var repository: TrackableRepository
 
     @Test
-    fun `POST create returns 204 and saves entity with createdAt`() {
+    fun `POST create returns 201 and saves entity with createdAt`() {
         // Arrange
         val captor = ArgumentCaptor.forClass(Trackable::class.java)
 
@@ -52,7 +52,8 @@ class TrackableControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
-            .expectStatus().isNoContent
+            .expectStatus().isCreated
+            .expectHeader().valueMatches("Location", "/api/trackables/.*")
 
         // Assert (repo interaction & saved entity)
         verify(repository, times(1)).save(captor.capture())

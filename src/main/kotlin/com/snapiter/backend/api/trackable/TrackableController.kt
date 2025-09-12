@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+import java.net.URI
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -25,10 +26,10 @@ class TrackableController(
      description = "Register a new trackable in the system." +
                  "If the `trackableId` already exists, a 409 Conflict is returned."
          )
-    @ApiResponse(responseCode = "204", description = "Created")
+    @ApiResponse(responseCode = "201", description = "Created")
     @ApiResponse(responseCode = "400", description = "Bad request")
     @ApiResponse(responseCode = "409", description = "Duplicate/conflict")
-    fun create(@RequestBody req: CreateTrackableRequest): Mono<ResponseEntity<Void>>{
+    fun create(@RequestBody req: CreateTrackableRequest): Mono<ResponseEntity<Void>> {
         val entity = Trackable(
             trackableId = UUID.randomUUID().toString(),
             name = req.name,
@@ -36,10 +37,11 @@ class TrackableController(
             website = req.website ?: "",
             hostName = req.hostName ?: "",
             icon = req.icon ?: "",
-            createdAt = LocalDateTime.now() // set internally; not exposed
+            createdAt = LocalDateTime.now()
         )
-        return repository.save(entity).map {
-            ResponseEntity.noContent().build()
+
+        return repository.save(entity).map { saved ->
+            ResponseEntity.created(URI.create("/api/trackables/${saved.trackableId}")).build()
         }
     }
 }
