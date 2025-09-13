@@ -1,5 +1,6 @@
 package com.snapiter.backend.model.trackable.trackable
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.snapiter.backend.api.trackable.CreateTrackableRequest
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -23,4 +24,10 @@ class TrackableService ( private val trackableRepository: TrackableRepository ){
             saved.trackableId
         }
     }
+
+    fun getByTrackableId(trackableId: String): Mono<Trackable> =
+        trackableRepository.findByTrackableId(trackableId)
+
+    fun getByHostName(hostName: String): Mono<Trackable> =
+        trackableRepository.findFirstByHostName(hostName)
 }

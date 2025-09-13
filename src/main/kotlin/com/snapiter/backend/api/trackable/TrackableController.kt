@@ -1,5 +1,6 @@
 package com.snapiter.backend.api.trackable
 
+import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -28,6 +29,24 @@ class TrackableController(
             ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
         }
     }
+
+    @GetMapping("/{trackableId}")
+    @Operation(summary = "Get a trackable by trackable identifier")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "404", description = "Not found")
+    fun getById(@PathVariable trackableId: String): Mono<ResponseEntity<Trackable>> =
+        trackableService.getByTrackableId(trackableId)
+            .map { ResponseEntity.ok(it) }
+            .defaultIfEmpty(ResponseEntity.notFound().build())
+
+    @GetMapping("/host/{hostName}")
+    @Operation(summary = "Get a trackable by host name")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "404", description = "Not found")
+    fun getByHost(@PathVariable hostName: String): Mono<ResponseEntity<Trackable>> =
+        trackableService.getByHostName(hostName)
+            .map { ResponseEntity.ok(it) }
+            .defaultIfEmpty(ResponseEntity.notFound().build())
 }
 
 data class CreateTrackableRequest(
@@ -38,3 +57,4 @@ data class CreateTrackableRequest(
     val hostName: String? = null,
     val icon: String? = null
 )
+

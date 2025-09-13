@@ -1,5 +1,6 @@
 package com.snapiter.backend.api.trackable
 
+import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 @WebFluxTest(controllers = [TrackableController::class])
 class TrackableControllerTest {
@@ -58,6 +60,80 @@ class TrackableControllerTest {
         assertEquals("https://snapiter.com", saved.website)
         assertEquals("snapiter.eu", saved.hostName)
         assertEquals("📍", saved.icon)
+
+    }
+
+
+
+
+    @Test
+    fun `GET by id returns 200 with entity`() {
+        val entity = Trackable(
+            trackableId = "abc",
+            name = "SnapIter name",
+            websiteTitle = "SnapIter",
+            website = "https://snapiter.com",
+            hostName = "snapiter.eu",
+            icon = "📍",
+            createdAt = LocalDateTime.parse("2025-09-10T12:34:56")
+        )
+        whenever(service.getByTrackableId("abc")).thenReturn(Mono.just(entity))
+
+        webTestClient.get()
+            .uri("/api/trackables/abc")
+            .exchange()
+            .expectStatus().isOk
+            .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("$.trackableId").isEqualTo("abc")
+            .jsonPath("$.name").isEqualTo("SnapIter name")
+            .jsonPath("$.websiteTitle").isEqualTo("SnapIter")
+            .jsonPath("$.website").isEqualTo("https://snapiter.com")
+            .jsonPath("$.hostName").isEqualTo("snapiter.eu")
+            .jsonPath("$.icon").isEqualTo("📍")
+    }
+
+    @Test
+    fun `GET by id returns 404 when missing`() {
+        whenever(service.getByTrackableId("missing")).thenReturn(Mono.empty())
+
+        webTestClient.get()
+            .uri("/api/trackables/missing")
+            .exchange()
+            .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `GET by host returns 200 with entity`() {
+        val entity = Trackable(
+            trackableId = "xyz",
+            name = "By Host",
+            websiteTitle = "SnapIter",
+            website = "https://snapiter.com",
+            hostName = "snapiter.eu",
+            icon = "📍",
+            createdAt = LocalDateTime.parse("2025-09-10T12:34:56")
+        )
+        whenever(service.getByHostName("snapiter.eu")).thenReturn(Mono.just(entity))
+
+        webTestClient.get()
+            .uri("/api/trackables/host/snapiter.eu")
+            .exchange()
+            .expectStatus().isOk
+            .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("$.trackableId").isEqualTo("xyz")
+            .jsonPath("$.hostName").isEqualTo("snapiter.eu")
+    }
+
+    @Test
+    fun `GET by host returns 404 when missing`() {
+        whenever(service.getByHostName("nope.example")).thenReturn(Mono.empty())
+
+        webTestClient.get()
+            .uri("/api/trackables/by-host/nope.example")
+            .exchange()
+            .expectStatus().isNotFound
 
     }
 }
