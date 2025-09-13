@@ -15,20 +15,18 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/trackables")
-@Tag(name = "Trackable", description = "XXXX")
+@Tag(name = "Trackable", description = "Endpoints to do work with trackables")
 class TrackableController(
     private val repository: TrackableRepository
 ) {
     @PostMapping()
 
-     @Operation(
-     summary = "Create a new trackable",
-     description = "Register a new trackable in the system." +
-                 "If the `trackableId` already exists, a 409 Conflict is returned."
-         )
+    @Operation(
+        summary = "Create a new trackable",
+        description = "Register a new trackable."
+    )
     @ApiResponse(responseCode = "201", description = "Created")
     @ApiResponse(responseCode = "400", description = "Bad request")
-    @ApiResponse(responseCode = "409", description = "Duplicate/conflict")
     fun create(@RequestBody req: CreateTrackableRequest): Mono<ResponseEntity<Void>> {
         val entity = Trackable(
             trackableId = UUID.randomUUID().toString(),
