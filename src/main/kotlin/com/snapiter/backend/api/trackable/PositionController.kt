@@ -1,17 +1,13 @@
 package com.snapiter.backend.api.trackable
 
-import com.snapiter.backend.model.trackable.devices.DeviceRepository
-import com.snapiter.backend.model.trackable.positionreport.PositionReport
-import com.snapiter.backend.model.trackable.positionreport.PositionReportRepository
+import com.snapiter.backend.model.trackable.positionreport.PositionService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.OffsetDateTime
 
@@ -19,8 +15,7 @@ import java.time.OffsetDateTime
 @RequestMapping("/api/trackable/")
 @Tag(name = "Trackable", description = "Endpoint for devices to send their current geographic position.")
 class PositionController(
-    private val deviceRepository: DeviceRepository,
-    private val positionReportRepository: PositionReportRepository,
+    private val positionService: PositionService
 ) {
     @PostMapping("{trackableId}/{deviceId}/position")
     @Operation(
@@ -35,37 +30,14 @@ class PositionController(
     fun createPositionReport(
         @PathVariable trackableId: String,
         @PathVariable deviceId: String,
-        @RequestBody request: PositionReportRequest
+        @RequestBody request: PositionRequest
     ): Mono<ResponseEntity<Void>> {
-        return deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId)
-            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
-            .flatMap { device ->
-                val positionReportMono = if (request.createdAt != null) {
-                    positionReportRepository.save(
-                        PositionReport.createFromLatAndLong(
-                            trackableId,
-                            request.latitude,
-                            request.longitude,
-                            request.createdAt
-                        )
-                    )
-                } else {
-                    positionReportRepository.save(
-                        PositionReport.createFromLatAndLong(
-                            trackableId,
-                            request.latitude,
-                            request.longitude
-                        )
-                    )
-                }
-                positionReportMono.map {
-                    ResponseEntity.noContent().build<Void>()
-                }
-        }.defaultIfEmpty(ResponseEntity.notFound().build())
+        return positionService.report(trackableId, deviceId, request)
+            .thenReturn(ResponseEntity.noContent().build())
     }
 }
 
-data class PositionReportRequest(
+data class PositionRequest(
     @field:DecimalMin(value = "-90.0", message = "latitude must be >= -90")
     @field:DecimalMax(value = "90.0", message = "latitude must be <= 90")
     val latitude: Double,

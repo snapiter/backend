@@ -1,53 +1,43 @@
 package com.snapiter.backend.api.trackable
 
-import com.snapiter.backend.model.trackable.devices.Device
-import com.snapiter.backend.model.trackable.devices.DeviceRepository
-import com.snapiter.backend.model.trackable.positionreport.PositionReport
-import com.snapiter.backend.model.trackable.positionreport.PositionReportRepository
+import com.snapiter.backend.model.trackable.positionreport.PositionService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.BDDMockito.given
-import org.mockito.Mockito.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
 @WebFluxTest(controllers = [PositionController::class])
 class PositionControllerTest {
 
-    @Autowired
-    lateinit var webTestClient: WebTestClient
+    @Autowired lateinit var webTestClient: WebTestClient
 
     @MockitoBean
-    lateinit var deviceRepository: DeviceRepository
-
-    @MockitoBean
-    lateinit var positionReportRepository: PositionReportRepository
+    lateinit var positionService: PositionService
 
     @Test
     fun `POST single position returns 204 when device exists`() {
         val trackableId = "t-123"
         val deviceId = "d-456"
 
-        val device = mock(Device::class.java)
-        given(deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId))
-            .willReturn(Mono.just(device))
-
-        given(positionReportRepository.save(any(PositionReport::class.java)))
-            .willReturn(Mono.just(mock(PositionReport::class.java)))
+        whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
+            .thenReturn(Mono.empty())
 
         val body = """
-            {
-              "latitude": 52.37,
-              "longitude": 4.90,
-              "createdAt": "2025-09-12T09:00:00Z"
-            }
+          { "latitude": 52.37, "longitude": 4.90, "createdAt": "2025-09-12T09:00:00Z" }
         """.trimIndent()
 
         webTestClient.post()
@@ -57,10 +47,8 @@ class PositionControllerTest {
             .exchange()
             .expectStatus().isNoContent
 
-        // Verify interactions
-        verify(deviceRepository, times(1)).findByDeviceIdAndTrackableId(deviceId, trackableId)
-        verify(positionReportRepository, times(1)).save(any(PositionReport::class.java))
-        verifyNoMoreInteractions(deviceRepository, positionReportRepository)
+        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
+        verifyNoMoreInteractions(positionService)
     }
 
     @Test
@@ -68,16 +56,10 @@ class PositionControllerTest {
         val trackableId = "t-unknown"
         val deviceId = "d-unknown"
 
-        // Device does not exist
-        given(deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId))
-            .willReturn(Mono.empty())
+        whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
+            .thenReturn(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
 
-        val body = """
-            {
-              "latitude": 52.37,
-              "longitude": 4.90
-            }
-        """.trimIndent()
+        val body = """{ "latitude": 52.37, "longitude": 4.90 }"""
 
         webTestClient.post()
             .uri("/api/trackable/$trackableId/$deviceId/position")
@@ -86,31 +68,24 @@ class PositionControllerTest {
             .exchange()
             .expectStatus().isNotFound
 
-        verify(deviceRepository, times(1)).findByDeviceIdAndTrackableId(deviceId, trackableId)
-        verify(positionReportRepository, never()).save(any(PositionReport::class.java))
-        verifyNoMoreInteractions(deviceRepository, positionReportRepository)
+        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
+        verifyNoMoreInteractions(positionService)
     }
+
     @Test
     fun `POST uses client createdAt when provided`() {
         val trackableId = "t-123"
         val deviceId = "d-456"
         val clientTs = OffsetDateTime.parse("2025-09-12T09:00:00Z")
 
-        val device = mock(Device::class.java)
-        given(deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId))
-            .willReturn(Mono.just(device))
+        val reqCaptor = argumentCaptor<PositionRequest>()
 
-        val captor = ArgumentCaptor.forClass(PositionReport::class.java)
-        given(positionReportRepository.save(captor.capture()))
-            .willReturn(Mono.just(mock(PositionReport::class.java)))
+        whenever(positionService.report(eq(trackableId), eq(deviceId), reqCaptor.capture()))
+            .thenReturn(Mono.empty())
 
         val body = """
-        {
-          "latitude": 52.3702,
-          "longitude": 4.8952,
-          "createdAt": "$clientTs"
-        }
-    """.trimIndent()
+          { "latitude": 52.3702, "longitude": 4.8952, "createdAt": "$clientTs" }
+        """.trimIndent()
 
         webTestClient.post()
             .uri("/api/trackable/$trackableId/$deviceId/position")
@@ -119,7 +94,6 @@ class PositionControllerTest {
             .exchange()
             .expectStatus().isNoContent
 
-        val saved = captor.value
-        assertEquals(clientTs.toInstant(), saved.createdAt!!.toInstant(ZoneOffset.UTC))
+        assertEquals(clientTs, reqCaptor.firstValue.createdAt)
     }
 }
