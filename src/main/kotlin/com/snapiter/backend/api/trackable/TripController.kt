@@ -68,7 +68,7 @@ class TripController(
             )
         ]
     )
-    fun getTrips(
+    fun getTrip(
         @PathVariable trackableId: String,
         @PathVariable trip: String,
     ): Mono<Trip> {

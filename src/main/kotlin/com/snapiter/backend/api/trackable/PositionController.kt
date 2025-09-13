@@ -15,12 +15,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 @RestController
-@RequestMapping("/api/trackable/")
+@RequestMapping("/api/trackables")
 @Tag(name = "Trackable", description = "Endpoint for devices to send their current geographic position.")
 class PositionController(
     private val positionService: PositionService
