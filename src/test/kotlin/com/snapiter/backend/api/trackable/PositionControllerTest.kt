@@ -18,8 +18,8 @@ import reactor.core.publisher.Mono
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@WebFluxTest(controllers = [PositionReportController::class])
-class PositionReportControllerTest {
+@WebFluxTest(controllers = [PositionController::class])
+class PositionControllerTest {
 
     @Autowired
     lateinit var webTestClient: WebTestClient
