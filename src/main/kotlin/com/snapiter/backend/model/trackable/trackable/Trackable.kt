@@ -15,6 +15,13 @@ data class Trackable (
     val hostName: String = "",
     val icon: String = "",
 
+    val positionType: PositionType = PositionType.HOURLY,
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
     val createdAt: LocalDateTime?
 )
+
+enum class PositionType {
+    HOURLY,
+    ALL
+}

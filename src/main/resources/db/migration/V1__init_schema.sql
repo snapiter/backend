@@ -9,6 +9,7 @@ CREATE TABLE trackables (
     website                TEXT NOT NULL DEFAULT '',
     host_name              TEXT NOT NULL DEFAULT '',
     icon                   TEXT NOT NULL DEFAULT '',
+    position_type          TEXT NOT NULL DEFAULT 'ALL',
     created_at             TIMESTAMPTZ
 );
 

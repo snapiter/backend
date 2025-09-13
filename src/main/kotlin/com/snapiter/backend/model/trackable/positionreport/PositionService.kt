@@ -2,14 +2,19 @@ package com.snapiter.backend.model.trackable.positionreport
 
 import com.snapiter.backend.api.trackable.PositionRequest
 import com.snapiter.backend.model.trackable.devices.DeviceRepository
+import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import com.snapiter.backend.model.trackable.trackable.PositionType
+import reactor.core.publisher.Flux
 
 @Service
 class PositionService(
+    private val trackableRepository: TrackableRepository,
     private val deviceRepository: DeviceRepository,
     private val positionReportRepository: PositionReportRepository
 ) {
@@ -21,6 +26,32 @@ class PositionService(
         }
     }
 
+    fun positions(
+        trackableId: String,
+        fromDate: LocalDateTime?,
+        untilDate: LocalDateTime?,
+        page: Int,
+        size: Int
+    ): Flux<PositionReport> {
+        return trackableRepository.findByTrackableId(trackableId).flatMapMany { trackable ->
+            when (trackable.positionType) {
+                PositionType.HOURLY -> {
+                    if (fromDate != null && untilDate != null) {
+                        positionReportRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDescAndTruncatedByHour(trackableId, fromDate, untilDate, page, size)
+                    } else {
+                        positionReportRepository.findAllByTrackableIdAndTruncateByHour(trackableId, page, size)
+                    }
+                }
+                PositionType.ALL -> {
+                    if (fromDate != null && untilDate != null) {
+                        positionReportRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(trackableId, fromDate, untilDate, page, size)
+                    } else {
+                        positionReportRepository.findAllByTrackableId(trackableId, page, size)
+                    }
+                }
+            }
+        }
+    }
 
     private fun ensureDevice(trackableId: String, deviceId: String): Mono<Unit> =
         deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId)
