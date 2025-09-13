@@ -46,3 +46,18 @@ CREATE TABLE position_report (
 -- Fast lookups by (trackable, time)
 CREATE INDEX idx_position_report_trackable_created
     ON position_report(trackable_id, created_at);
+
+
+CREATE TABLE trip (
+    id              BIGSERIAL PRIMARY KEY,
+    trackable_id       VARCHAR(255) NOT NULL,
+    start_date      TIMESTAMPTZ NOT NULL,
+    end_date        TIMESTAMPTZ,
+    title           TEXT NOT NULL,
+    description     TEXT,
+    slug            TEXT NOT NULL,
+    position_type   TEXT NOT NULL DEFAULT 'HOURLY',
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    color           VARCHAR(16) NOT NULL DEFAULT '#648192',
+    animation_speed BIGINT NOT NULL DEFAULT 10000
+);

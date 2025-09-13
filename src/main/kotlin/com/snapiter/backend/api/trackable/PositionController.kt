@@ -2,6 +2,7 @@ package com.snapiter.backend.api.trackable
 
 import com.snapiter.backend.model.trackable.positionreport.PositionReport
 import com.snapiter.backend.model.trackable.positionreport.PositionService
+import com.snapiter.backend.model.trackable.trip.PositionType
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -61,7 +62,7 @@ class PositionController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "500") size: Int
     ): Flux<PositionReport> {
-        return positionService.positions(trackableId, fromDate, untilDate, page, size)
+        return positionService.positions(PositionType.ALL, trackableId, fromDate, untilDate, page, size)
     }
 }
 

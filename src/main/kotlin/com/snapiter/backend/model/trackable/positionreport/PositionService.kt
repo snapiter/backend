@@ -9,7 +9,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import com.snapiter.backend.model.trackable.trackable.PositionType
+import com.snapiter.backend.model.trackable.trip.PositionType
 import reactor.core.publisher.Flux
 
 @Service
@@ -27,6 +27,7 @@ class PositionService(
     }
 
     fun positions(
+        positionType: PositionType,
         trackableId: String,
         fromDate: LocalDateTime?,
         untilDate: LocalDateTime?,
@@ -34,7 +35,7 @@ class PositionService(
         size: Int
     ): Flux<PositionReport> {
         return trackableRepository.findByTrackableId(trackableId).flatMapMany { trackable ->
-            when (trackable.positionType) {
+            when (positionType) {
                 PositionType.HOURLY -> {
                     if (fromDate != null && untilDate != null) {
                         positionReportRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDescAndTruncatedByHour(trackableId, fromDate, untilDate, page, size)
