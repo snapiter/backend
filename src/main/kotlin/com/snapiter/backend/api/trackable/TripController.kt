@@ -1,5 +1,6 @@
 package com.snapiter.backend.api.trackable
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.snapiter.backend.model.trackable.positionreport.PositionReport
 import com.snapiter.backend.model.trackable.positionreport.PositionService
 import com.snapiter.backend.model.trackable.trip.PositionType
@@ -11,16 +12,24 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 
 @RestController
@@ -104,4 +113,80 @@ class TripController(
                 )
             }
     }
+
+    @PostMapping("/{trackableId}/trips")
+    @Operation(
+        summary = "Create a trip for a trackable",
+        description = "Creates a new trip under the specified trackable (vessel). Slug must be unique per trackable."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "204", description = "Trip created successfully, no content returned"
+            ),
+            ApiResponse(
+                responseCode = "400", description = "Validation error",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+            ApiResponse(
+                responseCode = "409", description = "Duplicate slug for this trackable",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+            ApiResponse(
+                responseCode = "500", description = "Server error",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+        ]
+    )
+    fun createTrip(
+        @PathVariable trackableId: String,
+        @RequestBody @Valid body: CreateTripRequest
+    ): Mono<ResponseEntity<Void>> {
+        return tripRepository.findBySlugAndTrackableId(body.slug, trackableId)
+            .switchIfEmpty(
+                Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Slug already exists for this trackable"))
+            )
+            .flatMap {
+                val trip = Trip(
+                    id = null,
+                    trackableId = trackableId,
+                    startDate = body.startDate,
+                    endDate = body.endDate,
+                    title = body.title,
+                    description = body.description,
+                    slug = body.slug,
+                    positionType = body.positionType,
+                    createdAt = LocalDateTime.now(),
+                    color = if (body.color.startsWith("#")) body.color else "#${body.color}",
+                    animationSpeed = body.animationSpeed
+                )
+                tripRepository.save(trip)
+            }
+            .then(Mono.just(ResponseEntity.noContent().build()))
+    }
 }
+
+
+data class CreateTripRequest(
+    @field:NotBlank @field:Size(max = 200)
+    val title: String,
+
+    @field:Size(max = 2000)
+    val description: String? = null,
+
+    @field:NotBlank @field:Pattern(regexp = "^[a-z0-9-]+$")
+    val slug: String,
+
+    // ISO strings; we store UTC
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
+    val startDate: LocalDateTime,
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
+    val endDate: LocalDateTime? = null,
+
+    val positionType: PositionType = PositionType.HOURLY,
+    @field:Pattern(regexp = "^#?[A-Fa-f0-9]{6}$")
+    val color: String = "#648192",
+
+    val animationSpeed: Long = 10_000
+)
