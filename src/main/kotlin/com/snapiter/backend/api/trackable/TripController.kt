@@ -117,7 +117,7 @@ class TripController(
     @PostMapping("/{trackableId}/trips")
     @Operation(
         summary = "Create a trip for a trackable",
-        description = "Creates a new trip under the specified trackable (vessel). Slug must be unique per trackable."
+        description = "Creates a new trip under the specified trackable. Slug must be unique per trackable."
     )
     @ApiResponses(
         value = [

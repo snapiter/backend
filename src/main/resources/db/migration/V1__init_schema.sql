@@ -50,7 +50,7 @@ CREATE INDEX idx_position_report_trackable_created
 
 CREATE TABLE trip (
     id              BIGSERIAL PRIMARY KEY,
-    trackable_id       VARCHAR(255) NOT NULL,
+    trackable_id    VARCHAR(255) NOT NULL,
     start_date      TIMESTAMPTZ NOT NULL,
     end_date        TIMESTAMPTZ,
     title           TEXT NOT NULL,
@@ -59,5 +59,6 @@ CREATE TABLE trip (
     position_type   TEXT NOT NULL DEFAULT 'HOURLY',
     created_at      TIMESTAMPTZ DEFAULT NOW(),
     color           VARCHAR(16) NOT NULL DEFAULT '#648192',
-    animation_speed BIGINT NOT NULL DEFAULT 10000
+    animation_speed BIGINT NOT NULL DEFAULT 10000,
+    CONSTRAINT ux_trip_trackable_slug UNIQUE (trackable_id, slug)
 );
