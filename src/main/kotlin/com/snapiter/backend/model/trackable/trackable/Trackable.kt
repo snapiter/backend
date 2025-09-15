@@ -5,12 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Table("trackables")
 data class Trackable (
     @JsonIgnore
     @Id
-    val trackableId: String,
+    val trackableId: UUID? = null,
     val name: String?,
     val websiteTitle: String = "",
     val website: String = "",
