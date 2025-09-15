@@ -16,7 +16,6 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
-import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -34,7 +33,7 @@ import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/trackables")
-@Tag(name = "Trackable", description = "Endpoints for Trips")
+@Tag(name = "Trackable Trips", description = "Endpoints for Trips")
 class TripController(
     private val positionService: PositionService,
     private val tripRepository: TripRepository
