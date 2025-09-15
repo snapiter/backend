@@ -1,12 +1,14 @@
 package com.snapiter.backend.model.trackable.trackable
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
 
 @Table("trackables")
 data class Trackable (
+    @JsonIgnore
     @Id
     val trackableId: String,
     val name: String?,

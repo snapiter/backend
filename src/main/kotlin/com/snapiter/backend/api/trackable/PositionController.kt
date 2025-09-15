@@ -25,7 +25,7 @@ class PositionController(
     private val positionService: PositionService
 ) {
 
-    @PostMapping("{trackableId}/{deviceId}/position")
+    @PostMapping("/{trackableId}/{deviceId}/position")
     @Operation(
         summary = "Submit a position",
         description = "Accepts a single latitude/longitude update for the given device." +

@@ -1,6 +1,5 @@
 package com.snapiter.backend.model.trackable.trackable
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.snapiter.backend.api.trackable.CreateTrackableRequest
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono

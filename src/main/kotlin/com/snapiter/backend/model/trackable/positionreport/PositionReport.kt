@@ -1,6 +1,7 @@
 package com.snapiter.backend.model.trackable.positionreport
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
@@ -8,6 +9,7 @@ import java.time.OffsetDateTime
 
 @Table("position_report")
 data class PositionReport (
+    @JsonIgnore
     @Id var id: Long?,
     val trackableId: String,
     val latitude: Double,

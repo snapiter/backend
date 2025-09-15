@@ -41,7 +41,7 @@ class PositionControllerTest {
         """.trimIndent()
 
         webTestClient.post()
-            .uri("/api/trackable/$trackableId/$deviceId/position")
+            .uri("/api/trackables/$trackableId/$deviceId/position")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
@@ -53,8 +53,8 @@ class PositionControllerTest {
 
     @Test
     fun `POST single position returns 404 when device not found`() {
-        val trackableId = "t-unknown"
-        val deviceId = "d-unknown"
+        val trackableId = "trackableId"
+        val deviceId = "deviceId"
 
         whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
             .thenReturn(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
@@ -62,7 +62,7 @@ class PositionControllerTest {
         val body = """{ "latitude": 52.37, "longitude": 4.90 }"""
 
         webTestClient.post()
-            .uri("/api/trackable/$trackableId/$deviceId/position")
+            .uri("/api/trackables/$trackableId/$deviceId/position")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
@@ -88,7 +88,7 @@ class PositionControllerTest {
         """.trimIndent()
 
         webTestClient.post()
-            .uri("/api/trackable/$trackableId/$deviceId/position")
+            .uri("/api/trackables/$trackableId/$deviceId/position")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
