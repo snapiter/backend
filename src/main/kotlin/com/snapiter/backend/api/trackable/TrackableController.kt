@@ -22,6 +22,7 @@ import java.net.URI
 @Tag(name = "Trackable", description = "Endpoints to do work with trackables")
 @PreAuthorize("hasAnyRole('USER','DEVICE')")
 @SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = "deviceToken")
 class TrackableController(
     private val trackableService: TrackableService
 ) {

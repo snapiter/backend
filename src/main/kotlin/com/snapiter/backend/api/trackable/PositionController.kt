@@ -42,7 +42,7 @@ class PositionController(
     @ApiResponse(responseCode = "404", description = "Trackable/device not found")
     @ApiResponse(responseCode = "409", description = "Duplicate/conflict")
     @PreAuthorize("hasRole('DEVICE')")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "deviceToken")
     fun createPositionReport(
         @PathVariable trackableId: String,
         @PathVariable deviceId: String,

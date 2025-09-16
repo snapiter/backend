@@ -36,8 +36,9 @@ import java.time.LocalDateTime
 @RestController
 @RequestMapping("/api/trackables")
 @Tag(name = "Trackable Trips", description = "Endpoints for Trips")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAnyRole('USER','DEVICE')")
 @SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = "deviceToken")
 class TripController(
     private val positionService: PositionService,
     private val tripRepository: TripRepository
