@@ -35,12 +35,17 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-security")
 
+	// For QR code
+	implementation("com.google.zxing:core:3.5.3")
+	implementation("com.google.zxing:javase:3.5.3") // for BufferedImage encoder
+
 	// For magic link
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("io.jsonwebtoken:jjwt-api:0.13.0")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
+	testImplementation("org.springframework.security:spring-security-test")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 

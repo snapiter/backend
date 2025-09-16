@@ -11,7 +11,8 @@ import java.util.UUID
 data class Trackable (
     @JsonIgnore
     @Id
-    val trackableId: UUID? = null,
+    val id: Long? = null,
+    val trackableId: String?,
     val name: String?,
     val websiteTitle: String = "",
     val website: String = "",

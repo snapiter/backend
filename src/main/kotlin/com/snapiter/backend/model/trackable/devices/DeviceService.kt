@@ -10,6 +10,11 @@ class DeviceService(
     private val deviceRepository: DeviceRepository,
     private val deviceTokenService: DeviceTokenService
 ) {
+    fun issueDevice(trackableId: String, deviceId: String): Mono<String> {
+        return this.createDevice(trackableId, deviceId).flatMap {
+            deviceTokenService.issue(it.deviceId)
+        }
+    }
 
     fun createDevice(trackableId: String, deviceId: String): Mono<Device> {
         val now = LocalDateTime.now()
@@ -20,7 +25,6 @@ class DeviceService(
             createdAt = now,
             lastReportedAt = now
         )
-        deviceTokenService.issue(deviceId)
         return deviceRepository.save(device)
     }
 

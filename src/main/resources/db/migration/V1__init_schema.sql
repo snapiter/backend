@@ -5,7 +5,8 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- 1) TRACKABLES
 CREATE TABLE trackables (
-    trackable_id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id              BIGSERIAL PRIMARY KEY,
+    trackable_id    TEXT NOT NULL UNIQUE,
     name            TEXT,
     website_title   TEXT NOT NULL DEFAULT '',
     website         TEXT NOT NULL DEFAULT '',
@@ -17,7 +18,7 @@ CREATE TABLE trackables (
 -- 2) DEVICES
 CREATE TABLE devices (
     id                     BIGSERIAL PRIMARY KEY,
-    trackable_id           UUID NOT NULL,
+    trackable_id           TEXT NOT NULL,
     device_id              TEXT NOT NULL,
     created_at             TIMESTAMPTZ,
     last_reported_at       TIMESTAMPTZ,
@@ -33,7 +34,7 @@ CREATE UNIQUE INDEX ux_devices_trackable_device
 -- 3) POSITION REPORTS
 CREATE TABLE position_report (
     id                     BIGSERIAL PRIMARY KEY,
-    trackable_id           UUID NOT NULL,
+    trackable_id            TEXT NOT NULL,
     latitude               DOUBLE PRECISION NOT NULL,
     longitude              DOUBLE PRECISION NOT NULL,
     created_at             TIMESTAMPTZ,
@@ -49,7 +50,7 @@ CREATE INDEX idx_position_report_trackable_created
 -- 4) TRIPS
 CREATE TABLE trip (
     id              BIGSERIAL PRIMARY KEY,
-    trackable_id    UUID NOT NULL,
+    trackable_id    TEXT NOT NULL,
     start_date      TIMESTAMPTZ NOT NULL,
     end_date        TIMESTAMPTZ,
     title           TEXT NOT NULL,
@@ -111,8 +112,6 @@ CREATE TABLE refresh_tokens (
 
 CREATE INDEX ON refresh_tokens (user_id);
 CREATE INDEX ON refresh_tokens (expires_at);
-
-
 
 
 CREATE TABLE device_tokens (

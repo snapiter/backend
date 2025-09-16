@@ -3,6 +3,7 @@ package com.snapiter.backend.api
 import com.snapiter.backend.security.ExpiredTokenException
 import com.snapiter.backend.security.InvalidTokenException
 import com.snapiter.backend.security.UnauthorizedException
+import io.jsonwebtoken.ExpiredJwtException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -50,6 +51,14 @@ class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(ExpiredJwtException::class)
+    fun invalidJwtTokenException(ex: ExpiredJwtException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "expired_token",
+            message = "The token has expired. Please request a new one."
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
+    }
 }
 
 

@@ -4,11 +4,13 @@ import com.snapiter.backend.api.trackable.CreateTrackableRequest
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Service
 class TrackableService ( private val trackableRepository: TrackableRepository ){
     fun createTracker(req: CreateTrackableRequest) : Mono<String> {
         val entity = Trackable(
+            trackableId = UUID.randomUUID().toString(),
             name = req.name,
             websiteTitle = req.websiteTitle ?: "",
             website = req.website ?: "",

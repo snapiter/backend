@@ -1,5 +1,7 @@
 package com.snapiter.backend.api.trackable
 
+import com.snapiter.backend.TestAuthUtils.withDevicePrincipal
+import com.snapiter.backend.TestSecurityConfig
 import com.snapiter.backend.model.trackable.positionreport.PositionService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -15,12 +17,16 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.OffsetDateTime
 
 @WebFluxTest(controllers = [PositionController::class])
+@Import(TestSecurityConfig::class)
+@AutoConfigureWebTestClient
 class PositionControllerTest {
 
     @Autowired lateinit var webTestClient: WebTestClient
@@ -40,7 +46,9 @@ class PositionControllerTest {
           { "latitude": 52.37, "longitude": 4.90, "createdAt": "2025-09-12T09:00:00Z" }
         """.trimIndent()
 
-        webTestClient.post()
+        webTestClient
+            .withDevicePrincipal()
+            .post()
             .uri("/api/trackables/$trackableId/$deviceId/position")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
@@ -61,7 +69,9 @@ class PositionControllerTest {
 
         val body = """{ "latitude": 52.37, "longitude": 4.90 }"""
 
-        webTestClient.post()
+        webTestClient
+            .withDevicePrincipal()
+            .post()
             .uri("/api/trackables/$trackableId/$deviceId/position")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
@@ -87,7 +97,9 @@ class PositionControllerTest {
           { "latitude": 52.3702, "longitude": 4.8952, "createdAt": "$clientTs" }
         """.trimIndent()
 
-        webTestClient.post()
+        webTestClient
+            .withDevicePrincipal()
+            .post()
             .uri("/api/trackables/$trackableId/$deviceId/position")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)

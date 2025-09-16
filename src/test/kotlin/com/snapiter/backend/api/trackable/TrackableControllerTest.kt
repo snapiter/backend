@@ -1,5 +1,7 @@
 package com.snapiter.backend.api.trackable
 
+import com.snapiter.backend.TestAuthUtils.withDevicePrincipal
+import com.snapiter.backend.TestSecurityConfig
 import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableService
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,7 +13,9 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -19,6 +23,8 @@ import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 @WebFluxTest(controllers = [TrackableController::class])
+@Import(TestSecurityConfig::class)
+@AutoConfigureWebTestClient
 class TrackableControllerTest {
 
     @Autowired
@@ -42,8 +48,9 @@ class TrackableControllerTest {
             }
         """.trimIndent()
 
-        // Act + Assert (HTTP)
-        webTestClient.post()
+        webTestClient
+            .withDevicePrincipal()
+            .post()
             .uri("/api/trackables")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
@@ -79,7 +86,9 @@ class TrackableControllerTest {
         )
         whenever(service.getByTrackableId("abc")).thenReturn(Mono.just(entity))
 
-        webTestClient.get()
+        webTestClient
+            .withDevicePrincipal()
+            .get()
             .uri("/api/trackables/abc")
             .exchange()
             .expectStatus().isOk
@@ -97,7 +106,9 @@ class TrackableControllerTest {
     fun `GET by id returns 404 when missing`() {
         whenever(service.getByTrackableId("missing")).thenReturn(Mono.empty())
 
-        webTestClient.get()
+        webTestClient
+            .withDevicePrincipal()
+            .get()
             .uri("/api/trackables/missing")
             .exchange()
             .expectStatus().isNotFound
@@ -116,7 +127,9 @@ class TrackableControllerTest {
         )
         whenever(service.getByHostName("snapiter.eu")).thenReturn(Mono.just(entity))
 
-        webTestClient.get()
+        webTestClient
+            .withDevicePrincipal()
+            .get()
             .uri("/api/trackables/host/snapiter.eu")
             .exchange()
             .expectStatus().isOk
@@ -130,7 +143,9 @@ class TrackableControllerTest {
     fun `GET by host returns 404 when missing`() {
         whenever(service.getByHostName("nope.example")).thenReturn(Mono.empty())
 
-        webTestClient.get()
+        webTestClient
+            .withDevicePrincipal()
+            .get()
             .uri("/api/trackables/by-host/nope.example")
             .exchange()
             .expectStatus().isNotFound

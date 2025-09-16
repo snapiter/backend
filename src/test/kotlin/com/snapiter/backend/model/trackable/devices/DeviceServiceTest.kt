@@ -1,5 +1,6 @@
 package com.snapiter.backend.model.trackable.devices
 
+import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -19,11 +20,13 @@ import kotlin.test.assertTrue
 class DeviceServiceTest {
     private lateinit var deviceRepository: DeviceRepository
     private lateinit var deviceService: DeviceService
+    private lateinit var deviceTokenService: DeviceTokenService
 
     @BeforeEach
     fun setUp() {
         deviceRepository = Mockito.mock(DeviceRepository::class.java)
-        deviceService = DeviceService(deviceRepository)
+        deviceTokenService = Mockito.mock(DeviceTokenService::class.java)
+        deviceService = DeviceService(deviceRepository, deviceTokenService)
     }
 
     @Test
