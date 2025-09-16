@@ -4,9 +4,11 @@ import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.net.URI
@@ -14,6 +16,8 @@ import java.net.URI
 @RestController
 @RequestMapping("/api/trackables")
 @Tag(name = "Trackable", description = "Endpoints to do work with trackables")
+@PreAuthorize("hasRole('USER')")
+@SecurityRequirement(name = "bearerAuth")
 class TrackableController(
     private val trackableService: TrackableService
 ) {

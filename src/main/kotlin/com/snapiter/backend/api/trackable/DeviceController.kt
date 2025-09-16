@@ -8,31 +8,32 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/api/trackables/{trackableId}/devices")
 @Tag(name = "Devices", description = "Manage devices for a trackable entity")
+@PreAuthorize("hasRole('USER')")
+@SecurityRequirement(name = "bearerAuth")
 class DeviceController(
     private val deviceService: DeviceService
 ) {
-
-    data class CreateDeviceRequest(
-        val deviceId: String
-    )
-
     @PostMapping
     @Operation(
         summary = "Create a new device for a trackable",
         description = "Registers a new device under the specified trackableId."
     )
     @ApiResponses(
-        ApiResponse(responseCode = "201", description = "Device created",
-            content = [Content(schema = Schema(implementation = Device::class))]),
+        ApiResponse(
+            responseCode = "201", description = "Device created",
+            content = [Content(schema = Schema(implementation = Device::class))]
+        ),
         ApiResponse(responseCode = "400", description = "Invalid input", content = [Content()])
     )
     fun createDevice(
@@ -50,8 +51,10 @@ class DeviceController(
         description = "Returns the device registered for the given trackableId and deviceId."
     )
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Device found",
-            content = [Content(schema = Schema(implementation = Device::class))]),
+        ApiResponse(
+            responseCode = "200", description = "Device found",
+            content = [Content(schema = Schema(implementation = Device::class))]
+        ),
         ApiResponse(responseCode = "404", description = "Device not found", content = [Content()])
     )
     fun getDevice(
@@ -86,3 +89,7 @@ class DeviceController(
             }
     }
 }
+
+data class CreateDeviceRequest(
+    val deviceId: String
+)

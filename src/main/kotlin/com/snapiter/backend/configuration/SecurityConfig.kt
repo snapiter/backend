@@ -24,8 +24,8 @@ class SecurityConfig(private val jwtService: JwtService) {
             .formLogin { it.disable() }
             .authorizeExchange {
                 it.pathMatchers(
-                    "/api/auth/magic/request",
-                    "/api/auth/magic/consume",
+                    "/api/auth/login/email/request",
+                    "/api/auth/login/email/consume",
                     "/api/auth/refresh",
                     "/api/auth/logout"
                 ).permitAll()

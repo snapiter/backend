@@ -7,11 +7,13 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -21,6 +23,8 @@ import java.time.OffsetDateTime
 @RestController
 @RequestMapping("/api/trackables")
 @Tag(name = "Trackable Positions", description = "Endpoint for devices to send their current geographic position.")
+@PreAuthorize("hasRole('USER')")
+@SecurityRequirement(name = "bearerAuth")
 class PositionController(
     private val positionService: PositionService
 ) {
