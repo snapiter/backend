@@ -93,3 +93,21 @@ CREATE TABLE magic_links (
 
 CREATE INDEX ON magic_links (email);
 CREATE INDEX ON magic_links (expires_at);
+
+
+-- V2__refresh_tokens.sql
+CREATE TABLE refresh_tokens (
+  id               BIGSERIAL PRIMARY KEY,
+  user_id          UUID NOT NULL,
+  token_hash       TEXT NOT NULL UNIQUE,
+  issued_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at       TIMESTAMPTZ NOT NULL,
+  revoked_at       TIMESTAMPTZ,
+  replaced_by      TEXT,
+  user_agent       TEXT,
+  ip               TEXT,
+  last_used_at     TIMESTAMPTZ
+);
+
+CREATE INDEX ON refresh_tokens (user_id);
+CREATE INDEX ON refresh_tokens (expires_at);

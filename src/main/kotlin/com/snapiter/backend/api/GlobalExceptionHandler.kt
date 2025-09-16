@@ -2,6 +2,7 @@ package com.snapiter.backend.api
 
 import com.snapiter.backend.security.ExpiredTokenException
 import com.snapiter.backend.security.InvalidTokenException
+import com.snapiter.backend.security.UnauthorizedException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -38,6 +39,17 @@ class GlobalExceptionHandler {
         )
         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
     }
+
+    @ExceptionHandler(UnauthorizedException::class)
+    fun invalidTokenException(ex: UnauthorizedException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "unauthorized",
+            message = "You are not authorized"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
+    }
+
+
 }
 
 

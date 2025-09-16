@@ -26,7 +26,8 @@ class SecurityConfig(private val jwtService: JwtService) {
                 it.pathMatchers(
                     "/api/auth/magic/request",
                     "/api/auth/magic/consume",
-                    "/api/auth/refresh"
+                    "/api/auth/refresh",
+                    "/api/auth/logout"
                 ).permitAll()
                 it.pathMatchers("/api/**").authenticated()
             }
