@@ -40,6 +40,7 @@ class DeviceController(
         ),
         ApiResponse(responseCode = "400", description = "Invalid input", content = [Content()])
     )
+    @PreAuthorize("@trackableAccessChecker.canAccess(#trackableId, authentication)")
     fun quickCreate(
         @PathVariable trackableId: String,
         @AuthenticationPrincipal user: UserPrincipal
@@ -70,6 +71,7 @@ class DeviceController(
         ),
         ApiResponse(responseCode = "404", description = "Device not found", content = [Content()])
     )
+    @PreAuthorize("@trackableAccessChecker.canAccess(#trackableId, authentication)")
     fun getDevice(
         @Parameter(description = "Trackable ID that owns the device")
         @PathVariable trackableId: String,
@@ -90,6 +92,7 @@ class DeviceController(
         ApiResponse(responseCode = "204", description = "Device deleted", content = [Content()]),
         ApiResponse(responseCode = "404", description = "Device not found", content = [Content()])
     )
+    @PreAuthorize("@trackableAccessChecker.canAccess(#trackableId, authentication)")
     fun deleteDevice(
         @Parameter(description = "Trackable ID that owns the device")
         @PathVariable trackableId: String,
