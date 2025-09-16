@@ -7,3 +7,9 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: backend
       POSTGRES_PASSWORD: password
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: always
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP Server

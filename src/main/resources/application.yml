@@ -13,3 +13,32 @@ spring:
     url: jdbc:postgresql://localhost:5432/postgres
     user: backend
     password: password
+
+  mail:
+    host: localhost   # or "mailpit" if inside same Docker network
+    port: 1025
+    username: ""      # Mailpit does not require auth
+    password: ""
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+#  mail:
+#    host: smtp.example.com
+#    port: 587
+#    username: apikey
+#    password: secret
+#    properties:
+#      mail.smtp.auth: true
+#      mail.smtp.starttls.enable: true
+
+app:
+  jwt:
+    issuer: "snapiter"
+    access-ttl-minutes: 15
+    refresh-ttl-days: 30
+    secret: "${JWT_SECRET:c-vm3KMpNiyaLmnDvZsDrgIPpr8OW_tO0zUI0R3kJGE}" # Change it on production!
+  magic:
+    ttl-minutes: 15
+    rate-per-hour: 5
+    frontend-magic-url: "https://api.snapiter.com/magic"

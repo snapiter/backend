@@ -64,3 +64,32 @@ CREATE TABLE trip (
         ON DELETE CASCADE,
     CONSTRAINT ux_trip_trackable_slug UNIQUE (trackable_id, slug)
 );
+
+
+
+
+-- MAGIC LINKS
+CREATE EXTENSION IF NOT EXISTS citext;
+
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+  user_id UUID UNIQUE NOT NULL,
+  email CITEXT UNIQUE NOT NULL,
+  email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  display_name TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login_at TIMESTAMPTZ
+);
+
+CREATE TABLE magic_links (
+  id BIGSERIAL PRIMARY KEY,
+  email CITEXT NOT NULL,
+  user_id UUID,
+  token_hash TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at TIMESTAMPTZ
+);
+
+CREATE INDEX ON magic_links (email);
+CREATE INDEX ON magic_links (expires_at);
