@@ -67,11 +67,7 @@ class TrackableControllerTest {
         assertEquals("https://snapiter.com", saved.website)
         assertEquals("snapiter.eu", saved.hostName)
         assertEquals("📍", saved.icon)
-
     }
-
-
-
 
     @Test
     fun `GET by id returns 200 with entity`() {
