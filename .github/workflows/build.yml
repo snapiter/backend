@@ -32,6 +32,9 @@ jobs:
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Run tests
+        run: ./gradlew clean test
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
