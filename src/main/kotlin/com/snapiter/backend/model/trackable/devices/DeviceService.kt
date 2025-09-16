@@ -1,12 +1,14 @@
 package com.snapiter.backend.model.trackable.devices
 
+import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 @Service
 class DeviceService(
-    private val deviceRepository: DeviceRepository
+    private val deviceRepository: DeviceRepository,
+    private val deviceTokenService: DeviceTokenService
 ) {
 
     fun createDevice(trackableId: String, deviceId: String): Mono<Device> {
@@ -18,6 +20,7 @@ class DeviceService(
             createdAt = now,
             lastReportedAt = now
         )
+        deviceTokenService.issue(deviceId)
         return deviceRepository.save(device)
     }
 

@@ -111,3 +111,14 @@ CREATE TABLE refresh_tokens (
 
 CREATE INDEX ON refresh_tokens (user_id);
 CREATE INDEX ON refresh_tokens (expires_at);
+
+
+
+
+CREATE TABLE device_tokens (
+  id          BIGSERIAL PRIMARY KEY,
+  device_id   TEXT NOT NULL UNIQUE,   -- one active token per device
+  token_hash  TEXT NOT NULL UNIQUE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at  TIMESTAMPTZ
+);

@@ -1,5 +1,7 @@
 package com.snapiter.backend.configuration
 
+import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
+import com.snapiter.backend.security.DeviceAuthWebFilter
 import com.snapiter.backend.security.JwtAuthWebFilter
 import com.snapiter.backend.security.JwtService
 import org.springframework.context.annotation.Bean
@@ -12,7 +14,10 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 
 @Configuration
 @EnableWebFluxSecurity
-class SecurityConfig(private val jwtService: JwtService) {
+class SecurityConfig(
+    private val jwtService: JwtService,
+    private val deviceTokenService: DeviceTokenService
+) {
 
     @Bean
     fun apiSecurityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
@@ -31,6 +36,7 @@ class SecurityConfig(private val jwtService: JwtService) {
                 ).permitAll()
                 it.pathMatchers("/api/**").authenticated()
             }
+            .addFilterAt(DeviceAuthWebFilter(deviceTokenService), SecurityWebFiltersOrder.AUTHENTICATION)
             .addFilterAt(JwtAuthWebFilter(jwtService), SecurityWebFiltersOrder.AUTHENTICATION)
             .build()
     }

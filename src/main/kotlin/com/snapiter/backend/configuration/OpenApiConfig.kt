@@ -9,12 +9,9 @@ import io.swagger.v3.oas.models.OpenAPI
 import org.springframework.context.annotation.Bean
 
 @Configuration
-@SecurityScheme(
-    name = "bearerAuth",
-    type = SecuritySchemeType.HTTP,
-    scheme = "bearer",
-    bearerFormat = "JWT"
-)
+@SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
+@SecurityScheme(name = "deviceToken", type = SecuritySchemeType.HTTP, scheme = "Device",
+    description = "Send header: Authorization: Device <token>")
 class OpenApiConfig {
     @Bean
     fun sortTags(): OpenApiCustomizer = OpenApiCustomizer { openApi: OpenAPI ->

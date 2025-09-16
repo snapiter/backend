@@ -2,6 +2,7 @@ package com.snapiter.backend.security
 
 import com.snapiter.backend.model.users.UserEntity
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service

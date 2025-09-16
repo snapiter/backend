@@ -23,8 +23,7 @@ import java.time.OffsetDateTime
 @RestController
 @RequestMapping("/api/trackables")
 @Tag(name = "Trackable Positions", description = "Endpoint for devices to send their current geographic position.")
-@PreAuthorize("hasRole('USER')")
-@SecurityRequirement(name = "bearerAuth")
+
 class PositionController(
     private val positionService: PositionService
 ) {
@@ -33,12 +32,17 @@ class PositionController(
     @Operation(
         summary = "Submit a position",
         description = "Accepts a single latitude/longitude update for the given device." +
-                "An optional `createdAt` field can be provided; if omitted, the server timestamp will be used."
+                "An optional `createdAt` field can be provided; if omitted, the server timestamp will be used.",
+        security = [
+            SecurityRequirement(name = "deviceToken")
+        ]
     )
     @ApiResponse(responseCode = "204", description = "Created")
     @ApiResponse(responseCode = "400", description = "Bad request")
     @ApiResponse(responseCode = "404", description = "Trackable/device not found")
     @ApiResponse(responseCode = "409", description = "Duplicate/conflict")
+    @PreAuthorize("hasRole('DEVICE')")
+    @SecurityRequirement(name = "bearerAuth")
     fun createPositionReport(
         @PathVariable trackableId: String,
         @PathVariable deviceId: String,

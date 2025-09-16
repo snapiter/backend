@@ -2,6 +2,9 @@ package com.snapiter.backend.api.trackable
 
 import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableService
+import com.snapiter.backend.security.AppPrincipal
+import com.snapiter.backend.security.DevicePrincipal
+import com.snapiter.backend.security.UserPrincipal
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -9,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.net.URI
@@ -16,7 +20,7 @@ import java.net.URI
 @RestController
 @RequestMapping("/api/trackables")
 @Tag(name = "Trackable", description = "Endpoints to do work with trackables")
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasAnyRole('USER','DEVICE')")
 @SecurityRequirement(name = "bearerAuth")
 class TrackableController(
     private val trackableService: TrackableService
@@ -28,9 +32,22 @@ class TrackableController(
     )
     @ApiResponse(responseCode = "201", description = "Created")
     @ApiResponse(responseCode = "400", description = "Bad request")
-    fun create(@RequestBody req: CreateTrackableRequest): Mono<ResponseEntity<Void>> {
-        return trackableService.createTracker(req).map {
-            ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
+    fun create(
+        @RequestBody req: CreateTrackableRequest,
+        @AuthenticationPrincipal principal: AppPrincipal,
+    ): Mono<ResponseEntity<Void>> {
+        return when (principal) {
+            is DevicePrincipal -> {
+                trackableService.createTracker(req).map {
+                    ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
+                }
+            }
+
+            is UserPrincipal -> {
+                trackableService.createTracker(req).map {
+                    ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
+                }
+            }
         }
     }
 

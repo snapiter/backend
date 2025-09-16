@@ -4,7 +4,6 @@ import com.snapiter.backend.model.users.RefreshTokenEntity
 import com.snapiter.backend.model.users.RefreshTokenRepository
 import com.snapiter.backend.model.users.UserEntity
 import com.snapiter.backend.model.users.UserRepository
-import com.snapiter.backend.security.JwtService.Principal
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseCookie
 import org.springframework.stereotype.Service

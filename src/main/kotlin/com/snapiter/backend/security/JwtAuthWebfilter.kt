@@ -2,6 +2,7 @@ package com.snapiter.backend.security
 
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
@@ -15,9 +16,9 @@ class JwtAuthWebFilter(private val jwt: JwtService) : WebFilter {
             val token = authHeader.removePrefix("Bearer ").trim()
             return jwt.parse(token).flatMap { principal ->
                 val authentication = UsernamePasswordAuthenticationToken(
-                    principal,
+                    UserPrincipal(principal.userId, principal.email),
                     token,
-                    principal.authorities
+                    listOf(SimpleGrantedAuthority("ROLE_USER"))
                 )
                 chain.filter(exchange)
                     .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication))
