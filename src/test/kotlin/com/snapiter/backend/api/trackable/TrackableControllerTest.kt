@@ -2,6 +2,7 @@ package com.snapiter.backend.api.trackable
 
 import com.snapiter.backend.TestAuthUtils.withDevicePrincipal
 import com.snapiter.backend.TestSecurityConfig
+import com.snapiter.backend.model.trackable.devices.DeviceRepository
 import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import com.snapiter.backend.model.trackable.trackable.TrackableService
@@ -23,6 +24,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import com.snapiter.backend.security.TrackableSecurityService
+import java.util.UUID
 
 @WebFluxTest(controllers = [TrackableController::class])
 @Import(TestSecurityConfig::class, TrackableSecurityService::class)
@@ -38,10 +40,13 @@ class TrackableControllerTest {
     @MockitoBean
     lateinit var trackableRepository: TrackableRepository
 
+    @MockitoBean
+    lateinit var deviceRepository: DeviceRepository
+
     @Test
     fun `POST create returns 201 and saves entity with createdAt`() {
         val captor = argumentCaptor<CreateTrackableRequest>()
-        whenever(service.createTracker(any())).thenReturn(Mono.just("trackableId"))
+        whenever(service.createTracker(any(),any())).thenReturn(Mono.just("trackableId"))
 
         val body = """
             {
@@ -64,7 +69,7 @@ class TrackableControllerTest {
             .expectHeader().valueMatches("Location", "/api/trackables/.*")
 
         // Assert (repo interaction & saved entity)
-        verify(service, times(1)).createTracker(captor.capture())
+        verify(service, times(1)).createTracker(captor.capture(), any())
         val saved = captor.firstValue
 
         assertEquals("SnapIter name", saved.name)
@@ -104,7 +109,8 @@ class TrackableControllerTest {
         website = "https://snapiter.com",
         hostName = "snapiter.eu",
         icon = "📍",
-        createdAt = LocalDateTime.parse("2025-09-10T12:34:56")
+        createdAt = LocalDateTime.parse("2025-09-10T12:34:56"),
+        userId = UUID.randomUUID()
     )
 
     @Test
@@ -123,7 +129,6 @@ class TrackableControllerTest {
 
     @Test
     fun `GET by host returns 200 with entity`() {
-
         val entity = Trackable(
             trackableId = "xyz",
             name = "By Host",
@@ -131,8 +136,11 @@ class TrackableControllerTest {
             website = "https://snapiter.com",
             hostName = "snapiter.eu",
             icon = "📍",
-            createdAt = LocalDateTime.parse("2025-09-10T12:34:56")
+            createdAt = LocalDateTime.parse("2025-09-10T12:34:56"),
+            userId = UUID.randomUUID()
+
         )
+
 
         whenever(service.getByHostName("snapiter.eu")).thenReturn(Mono.just(entity))
 

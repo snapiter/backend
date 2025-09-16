@@ -37,18 +37,8 @@ class TrackableController(
         @RequestBody req: CreateTrackableRequest,
         @AuthenticationPrincipal principal: AppPrincipal,
     ): Mono<ResponseEntity<Void>> {
-        return when (principal) {
-            is DevicePrincipal -> {
-                trackableService.createTracker(req).map {
-                    ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
-                }
-            }
-
-            is UserPrincipal -> {
-                trackableService.createTracker(req).map {
-                    ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
-                }
-            }
+        return trackableService.createTracker(req, principal.userId).map {
+            ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
         }
     }
 

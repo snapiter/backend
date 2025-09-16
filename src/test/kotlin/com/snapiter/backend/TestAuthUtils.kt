@@ -11,7 +11,7 @@ import java.util.*
 
 object TestAuthUtils {
     fun WebTestClient.withDevicePrincipal(deviceId: String = "test-device-id"): WebTestClient {
-        val devicePrincipal = DevicePrincipal(deviceId)
+        val devicePrincipal = DevicePrincipal(UUID.randomUUID(), deviceId)
         val authentication = UsernamePasswordAuthenticationToken(
             devicePrincipal,
             null,
@@ -31,26 +31,5 @@ object TestAuthUtils {
             listOf(SimpleGrantedAuthority("ROLE_USER"))
         )
         return this.mutateWith(SecurityMockServerConfigurers.mockAuthentication(authentication))
-    }
-
-    fun createDeviceAuthentication(deviceId: String = "test-device-id"): Authentication {
-        val devicePrincipal = DevicePrincipal(deviceId)
-        return UsernamePasswordAuthenticationToken(
-            devicePrincipal,
-            null,
-            listOf(SimpleGrantedAuthority("ROLE_DEVICE"))
-        )
-    }
-
-    fun createUserAuthentication(
-        userId: UUID = UUID.randomUUID(),
-        email: String = "test@example.com"
-    ): Authentication {
-        val userPrincipal = UserPrincipal(userId, email)
-        return UsernamePasswordAuthenticationToken(
-            userPrincipal,
-            null,
-            listOf(SimpleGrantedAuthority("ROLE_USER"))
-        )
     }
 }

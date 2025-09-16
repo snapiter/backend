@@ -41,7 +41,7 @@ class DeviceController(
         ApiResponse(responseCode = "400", description = "Invalid input", content = [Content()])
     )
     @PreAuthorize("@trackableAccessChecker.canAccess(#trackableId, authentication)")
-    fun quickCreate(
+    fun create(
         @PathVariable trackableId: String,
         @AuthenticationPrincipal user: UserPrincipal
     ): Mono<QuickCreateRes> {

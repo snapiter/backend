@@ -8,7 +8,7 @@ import java.util.UUID
 
 @Service
 class TrackableService ( private val trackableRepository: TrackableRepository ){
-    fun createTracker(req: CreateTrackableRequest) : Mono<String> {
+    fun createTracker(req: CreateTrackableRequest, userId: UUID) : Mono<String> {
         val entity = Trackable(
             trackableId = UUID.randomUUID().toString(),
             name = req.name,
@@ -16,7 +16,8 @@ class TrackableService ( private val trackableRepository: TrackableRepository ){
             website = req.website ?: "",
             hostName = req.hostName ?: "",
             icon = req.icon ?: "",
-            createdAt = LocalDateTime.now()
+            createdAt = LocalDateTime.now(),
+            userId = userId
         )
 
         return trackableRepository.save(entity).map { saved ->

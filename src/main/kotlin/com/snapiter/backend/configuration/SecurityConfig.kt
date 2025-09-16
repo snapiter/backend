@@ -1,5 +1,6 @@
 package com.snapiter.backend.configuration
 
+import com.snapiter.backend.model.trackable.devices.DeviceRepository
 import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import com.snapiter.backend.security.DeviceAuthWebFilter
 import com.snapiter.backend.security.JwtAuthWebFilter
@@ -18,7 +19,8 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @EnableReactiveMethodSecurity
 class SecurityConfig(
     private val jwtService: JwtService,
-    private val deviceTokenService: DeviceTokenService
+    private val deviceTokenService: DeviceTokenService,
+    private val deviceRepository: DeviceRepository
 ) {
 
     @Bean
@@ -38,7 +40,7 @@ class SecurityConfig(
                 ).permitAll()
                 it.pathMatchers("/api/**").authenticated()
             }
-            .addFilterAt(DeviceAuthWebFilter(deviceTokenService), SecurityWebFiltersOrder.AUTHENTICATION)
+            .addFilterAt(DeviceAuthWebFilter(deviceTokenService, deviceRepository), SecurityWebFiltersOrder.AUTHENTICATION)
             .addFilterAt(JwtAuthWebFilter(jwtService), SecurityWebFiltersOrder.AUTHENTICATION)
             .build()
     }

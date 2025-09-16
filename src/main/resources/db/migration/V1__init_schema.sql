@@ -3,7 +3,6 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- 1) TRACKABLES
 CREATE TABLE trackables (
     id              BIGSERIAL PRIMARY KEY,
     trackable_id    TEXT NOT NULL UNIQUE,
@@ -12,8 +11,13 @@ CREATE TABLE trackables (
     website         TEXT NOT NULL DEFAULT '',
     host_name       TEXT NOT NULL UNIQUE,
     icon            TEXT NOT NULL DEFAULT '',
-    created_at      TIMESTAMPTZ
+    created_at      TIMESTAMPTZ,
+    user_id         UUID NOT NULL,
+    CONSTRAINT fk_trackables_user
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+        ON DELETE CASCADE
 );
+
 
 -- 2) DEVICES
 CREATE TABLE devices (

@@ -12,6 +12,7 @@ data class Trackable (
     @JsonIgnore
     @Id
     val id: Long? = null,
+
     val trackableId: String?,
     val name: String?,
     val websiteTitle: String = "",
@@ -20,5 +21,7 @@ data class Trackable (
     val icon: String = "",
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val createdAt: LocalDateTime?
+    val createdAt: LocalDateTime?,
+
+    val userId: UUID
 )

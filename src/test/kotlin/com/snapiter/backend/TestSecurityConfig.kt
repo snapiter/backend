@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import reactor.core.publisher.Mono
+import java.util.UUID
 
 @TestConfiguration
 @EnableWebFluxSecurity
@@ -20,8 +21,8 @@ class TestSecurityConfig {
     fun testAuthenticationManager(): ReactiveAuthenticationManager {
         return ReactiveAuthenticationManager { authentication ->
             val principal = when (authentication.name) {
-                "device" -> DevicePrincipal("test-device-id")
-                else -> DevicePrincipal("default-device-id")
+                "device" -> DevicePrincipal(UUID.randomUUID(),"test-device-id")
+                else -> DevicePrincipal(UUID.randomUUID(),"default-device-id")
             }
 
             val authenticatedToken = UsernamePasswordAuthenticationToken(
