@@ -15,22 +15,13 @@ spring:
     password: password
 
   mail:
-    host: localhost   # or "mailpit" if inside same Docker network
+    host: localhost
     port: 1025
-    username: ""      # Mailpit does not require auth
+    username: ""
     password: ""
     properties:
       mail.smtp.auth: false
       mail.smtp.starttls.enable: false
-
-#  mail:
-#    host: smtp.example.com
-#    port: 587
-#    username: apikey
-#    password: secret
-#    properties:
-#      mail.smtp.auth: true
-#      mail.smtp.starttls.enable: true
 
 app:
   jwt:
@@ -38,7 +29,6 @@ app:
     access-ttl-minutes: 15
     refresh-ttl-days: 30
     secret: "${JWT_SECRET:c-vm3KMpNiyaLmnDvZsDrgIPpr8OW_tO0zUI0R3kJGE}" # Change it on production!
-  magic:
+  email:
     ttl-minutes: 15
-    rate-per-hour: 5
-    frontend-magic-url: "https://api.snapiter.com/magic"
+    frontend-email-url: "${FRONTEND_EMAIL_URL}:http://localhost:3000/email"

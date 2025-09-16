@@ -22,8 +22,8 @@ class MagicLinkService(
     private val userRepo: UserRepository,
     private val magicRepo: MagicLinkRepository,
     private val mailSender: JavaMailSender,
-    @Value("\${app.magic.ttl-minutes}") private val ttlMinutes: Long,
-    @Value("\${app.magic.frontend-magic-url}") private val frontendMagicUrl: String,
+    @Value("\${app.email.ttl-minutes}") private val ttlMinutes: Long,
+    @Value("\${app.email.frontend-email-url}") private val frontendMagicUrl: String,
 ) {
     private fun normalizeEmail(raw: String) = raw.trim().lowercase()
 
