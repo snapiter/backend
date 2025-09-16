@@ -3,6 +3,7 @@ package com.snapiter.backend.api.trackable
 import com.snapiter.backend.TestAuthUtils.withDevicePrincipal
 import com.snapiter.backend.TestSecurityConfig
 import com.snapiter.backend.model.trackable.trackable.Trackable
+import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import com.snapiter.backend.model.trackable.trackable.TrackableService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -21,9 +22,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
+import com.snapiter.backend.security.TrackableSecurityService
 
 @WebFluxTest(controllers = [TrackableController::class])
-@Import(TestSecurityConfig::class)
+@Import(TestSecurityConfig::class, TrackableSecurityService::class)
 @AutoConfigureWebTestClient
 class TrackableControllerTest {
 
@@ -32,6 +34,9 @@ class TrackableControllerTest {
 
     @MockitoBean
     lateinit var service: TrackableService
+
+    @MockitoBean
+    lateinit var trackableRepository: TrackableRepository
 
     @Test
     fun `POST create returns 201 and saves entity with createdAt`() {
@@ -71,17 +76,11 @@ class TrackableControllerTest {
 
     @Test
     fun `GET by id returns 200 with entity`() {
-        val entity = Trackable(
-            trackableId = "abc",
-            name = "SnapIter name",
-            websiteTitle = "SnapIter",
-            website = "https://snapiter.com",
-            hostName = "snapiter.eu",
-            icon = "📍",
-            createdAt = LocalDateTime.parse("2025-09-10T12:34:56")
-        )
+        val entity = trackable()
         whenever(service.getByTrackableId("abc")).thenReturn(Mono.just(entity))
 
+        whenever(trackableRepository.findByTrackableId("abc"))
+            .thenReturn(Mono.just(entity))
         webTestClient
             .withDevicePrincipal()
             .get()
@@ -98,10 +97,22 @@ class TrackableControllerTest {
             .jsonPath("$.icon").isEqualTo("📍")
     }
 
+    private fun trackable(): Trackable = Trackable(
+        trackableId = "abc",
+        name = "SnapIter name",
+        websiteTitle = "SnapIter",
+        website = "https://snapiter.com",
+        hostName = "snapiter.eu",
+        icon = "📍",
+        createdAt = LocalDateTime.parse("2025-09-10T12:34:56")
+    )
+
     @Test
     fun `GET by id returns 404 when missing`() {
         whenever(service.getByTrackableId("missing")).thenReturn(Mono.empty())
 
+        whenever(trackableRepository.findByTrackableId("missing"))
+            .thenReturn(Mono.just(trackable()))
         webTestClient
             .withDevicePrincipal()
             .get()
@@ -112,6 +123,7 @@ class TrackableControllerTest {
 
     @Test
     fun `GET by host returns 200 with entity`() {
+
         val entity = Trackable(
             trackableId = "xyz",
             name = "By Host",
@@ -121,6 +133,7 @@ class TrackableControllerTest {
             icon = "📍",
             createdAt = LocalDateTime.parse("2025-09-10T12:34:56")
         )
+
         whenever(service.getByHostName("snapiter.eu")).thenReturn(Mono.just(entity))
 
         webTestClient
@@ -139,10 +152,12 @@ class TrackableControllerTest {
     fun `GET by host returns 404 when missing`() {
         whenever(service.getByHostName("nope.example")).thenReturn(Mono.empty())
 
+        whenever(trackableRepository.findByTrackableId("abc"))
+            .thenReturn(Mono.empty())
         webTestClient
             .withDevicePrincipal()
             .get()
-            .uri("/api/trackables/by-host/nope.example")
+            .uri("/api/trackables/host/nope.example")
             .exchange()
             .expectStatus().isNotFound
 

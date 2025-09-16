@@ -10,7 +10,7 @@ class TrackableSecurityService(
     private val trackableRepository: TrackableRepository
 ) {
 
-    fun canAccessReactive(trackableId: String, auth: Authentication): Mono<Boolean> {
+    fun canAccess(trackableId: String, auth: Authentication): Mono<Boolean> {
         val principal = auth.principal as? AppPrincipal ?: return Mono.just(false)
 
         // For now, allow access based on role - this can be enhanced later with actual ownership checks
@@ -36,12 +36,4 @@ class TrackableSecurityService(
             .defaultIfEmpty(false)
     }
 
-    // Synchronous wrapper for @PreAuthorize compatibility
-    fun canAccess(trackableId: String, authentication: Authentication): Boolean {
-        return try {
-            canAccessReactive(trackableId, authentication).block() ?: false
-        } catch (e: Exception) {
-            false
-        }
-    }
 }

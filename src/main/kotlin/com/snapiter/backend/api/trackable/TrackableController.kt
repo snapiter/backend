@@ -62,6 +62,7 @@ class TrackableController(
             .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(ResponseEntity.notFound().build())
 
+
     @GetMapping("/host/{hostName}")
     @Operation(summary = "Get a trackable by host name")
     @ApiResponse(responseCode = "200", description = "OK")

@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 class TestSecurityConfig {
-
     @Bean
     fun testAuthenticationManager(): ReactiveAuthenticationManager {
         return ReactiveAuthenticationManager { authentication ->

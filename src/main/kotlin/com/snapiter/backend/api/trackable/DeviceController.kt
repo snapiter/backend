@@ -2,6 +2,8 @@ package com.snapiter.backend.api.trackable
 
 import com.snapiter.backend.model.trackable.devices.Device
 import com.snapiter.backend.model.trackable.devices.DeviceService
+import com.snapiter.backend.security.UserPrincipal
+import com.snapiter.backend.util.Qr
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -13,8 +15,10 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/trackables/{trackableId}/devices")
@@ -36,13 +40,22 @@ class DeviceController(
         ),
         ApiResponse(responseCode = "400", description = "Invalid input", content = [Content()])
     )
-    fun createDevice(
-        @Parameter(description = "Trackable ID that owns the device")
+    fun quickCreate(
         @PathVariable trackableId: String,
-        @RequestBody req: CreateDeviceRequest
-    ): Mono<ResponseEntity<Device>> {
-        return deviceService.createDevice(trackableId, req.deviceId)
-            .map { ResponseEntity.status(HttpStatus.CREATED).body(it) }
+        @AuthenticationPrincipal user: UserPrincipal
+    ): Mono<QuickCreateRes> {
+        val deviceId = UUID.randomUUID().toString()
+        return deviceService.issueDevice(
+            trackableId,
+            deviceId
+        ).map { issued ->
+            val payload = """{"deviceId":"$deviceId","token":"$issued"}"""
+            val qr = Qr.dataUrl(payload) // see util below
+            QuickCreateRes(
+                deviceToken = issued,
+                qrDataUrl = qr,
+            )
+        }
     }
 
     @GetMapping("/{deviceId}")
@@ -89,7 +102,7 @@ class DeviceController(
             }
     }
 }
-
-data class CreateDeviceRequest(
-    val deviceId: String
+data class QuickCreateRes(
+    val deviceToken: String,
+    val qrDataUrl: String,
 )
