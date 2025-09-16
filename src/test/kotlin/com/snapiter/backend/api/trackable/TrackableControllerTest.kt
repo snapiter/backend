@@ -24,6 +24,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import com.snapiter.backend.security.TrackableSecurityService
+import org.mockito.kotlin.eq
 import java.util.UUID
 
 @WebFluxTest(controllers = [TrackableController::class])
@@ -84,8 +85,9 @@ class TrackableControllerTest {
         val entity = trackable()
         whenever(service.getByTrackableId("abc")).thenReturn(Mono.just(entity))
 
-        whenever(trackableRepository.findByTrackableId("abc"))
-            .thenReturn(Mono.just(entity))
+        whenever(deviceRepository.existsByTrackableIdAndDeviceId(eq("abc"), any()))
+            .thenReturn(Mono.just(true))
+
         webTestClient
             .withDevicePrincipal()
             .get()
@@ -119,6 +121,11 @@ class TrackableControllerTest {
 
         whenever(trackableRepository.findByTrackableId("missing"))
             .thenReturn(Mono.just(trackable()))
+
+
+        whenever(deviceRepository.existsByTrackableIdAndDeviceId(eq("missing"), any()))
+            .thenReturn(Mono.just(true))
+
         webTestClient
             .withDevicePrincipal()
             .get()

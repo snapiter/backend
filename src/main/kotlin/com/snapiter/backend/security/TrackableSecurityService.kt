@@ -14,7 +14,6 @@ class TrackableSecurityService(
     fun canAccess(trackableId: String, auth: Authentication): Mono<Boolean> {
         val principal = auth.principal as? AppPrincipal ?: return Mono.just(false)
 
-        // For now, allow access based on role - this can be enhanced later with actual ownership checks
         return when (principal) {
             is UserPrincipal -> checkUserAccess(trackableId, principal)
             is DevicePrincipal -> checkDeviceAccess(trackableId, principal)
