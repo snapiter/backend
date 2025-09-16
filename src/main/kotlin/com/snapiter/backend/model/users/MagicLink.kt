@@ -1,19 +1,20 @@
 package com.snapiter.backend.model.users
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.OffsetDateTime
 import java.util.UUID
 
-@Table("users")
-data class UserEntity(
-    @JsonIgnore
-    @Id var id: Long?,
-    val userId: UUID,
+
+// MagicLinkEntity.kt
+@Table("magic_links")
+data class MagicLink(
+    @Id val id: Long?,
     val email: String,
-    val emailVerified: Boolean,
-    val displayName: String?,
+    val userId: UUID?,
+    val tokenHash: String,
     val createdAt: OffsetDateTime,
-    val lastLoginAt: OffsetDateTime?
+    val expiresAt: OffsetDateTime,
+    val usedAt: OffsetDateTime?
 )

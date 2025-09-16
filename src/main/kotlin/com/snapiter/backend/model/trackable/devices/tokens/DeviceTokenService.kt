@@ -26,7 +26,7 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
     fun issue(deviceId: String): Mono<String> {
         val raw = newRaw()
         val hash = sha256(raw)
-        val row = DeviceTokenEntity(null, deviceId, hash, now(), null)
+        val row = DeviceToken(null, deviceId, hash, now(), null)
 
         return repo.findByDeviceId(deviceId)
             .flatMap { existing ->

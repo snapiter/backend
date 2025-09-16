@@ -4,7 +4,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Mono
 import java.util.UUID
 
-interface UserRepository : ReactiveCrudRepository<UserEntity, Long> {
-    fun findByEmail(email: String): Mono<UserEntity>
-    fun findByUserId(userId: UUID): Mono<UserEntity>
+interface UserRepository : ReactiveCrudRepository<User, Long> {
+    fun findByEmail(email: String): Mono<User>
+    fun findByUserId(userId: UUID): Mono<User>
 }

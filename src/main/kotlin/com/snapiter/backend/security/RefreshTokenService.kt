@@ -1,8 +1,8 @@
 package com.snapiter.backend.security
 
-import com.snapiter.backend.model.users.RefreshTokenEntity
+import com.snapiter.backend.model.users.RefreshToken
 import com.snapiter.backend.model.users.RefreshTokenRepository
-import com.snapiter.backend.model.users.UserEntity
+import com.snapiter.backend.model.users.User
 import com.snapiter.backend.model.users.UserRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseCookie
@@ -50,11 +50,11 @@ class RefreshTokenService(
         ResponseCookie.from("refresh_token", "")
             .httpOnly(true).secure(true).sameSite("Lax").path("/").maxAge(0).build()
 
-    fun startSession(user: UserEntity, exchange: ServerWebExchange): Mono<Tokens> {
+    fun startSession(user: User, exchange: ServerWebExchange): Mono<Tokens> {
         val raw = newRawToken()
         val hash = sha256(raw)
         val now = nowUtc()
-        val entity = RefreshTokenEntity(
+        val entity = RefreshToken(
             userId = user.userId,
             tokenHash = hash,
             issuedAt = now,
@@ -87,7 +87,7 @@ class RefreshTokenService(
                     .flatMap { user ->
                         val childRaw = newRawToken()
                         val childHash = sha256(childRaw)
-                        val child = RefreshTokenEntity(
+                        val child = RefreshToken(
                             userId = user.userId,
                             tokenHash = childHash,
                             issuedAt = now,

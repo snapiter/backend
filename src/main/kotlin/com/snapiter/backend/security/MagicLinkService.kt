@@ -1,8 +1,8 @@
 package com.snapiter.backend.security
 
-import com.snapiter.backend.model.users.MagicLinkEntity
+import com.snapiter.backend.model.users.MagicLink
 import com.snapiter.backend.model.users.MagicLinkRepository
-import com.snapiter.backend.model.users.UserEntity
+import com.snapiter.backend.model.users.User
 import com.snapiter.backend.model.users.UserRepository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -40,11 +40,11 @@ class MagicLinkService(
         return userRepo.findByEmail(email)
             .switchIfEmpty(
                 Mono.just(
-                    UserEntity(null, UUID.randomUUID(), email, false, null, now, null)
+                    User(null, UUID.randomUUID(), email, false, null, now, null)
                 ).flatMap(userRepo::save)
             )
             .flatMap { user ->
-                val entity = MagicLinkEntity(
+                val entity = MagicLink(
                     id = null,
                     email = email,
                     userId = user.userId,
@@ -59,7 +59,7 @@ class MagicLinkService(
             }
     }
 
-    fun consume(rawToken: String): Mono<UserEntity> {
+    fun consume(rawToken: String): Mono<User> {
         val now = OffsetDateTime.now(ZoneOffset.UTC)
         val tokenHash = sha256(rawToken)
 

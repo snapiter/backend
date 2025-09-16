@@ -6,7 +6,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Table("refresh_tokens")
-data class RefreshTokenEntity(
+data class RefreshToken(
     @Id val id: Long? = null,
     val userId: UUID,
     val tokenHash: String,

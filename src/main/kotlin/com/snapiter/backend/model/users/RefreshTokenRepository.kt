@@ -4,6 +4,6 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Mono
 
 
-interface RefreshTokenRepository : ReactiveCrudRepository<RefreshTokenEntity, Long> {
-    fun findByTokenHash(tokenHash: String): Mono<RefreshTokenEntity>
+interface RefreshTokenRepository : ReactiveCrudRepository<RefreshToken, Long> {
+    fun findByTokenHash(tokenHash: String): Mono<RefreshToken>
 }

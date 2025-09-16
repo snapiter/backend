@@ -5,7 +5,7 @@ import org.springframework.data.relational.core.mapping.Table
 import java.time.OffsetDateTime
 
 @Table("device_tokens")
-data class DeviceTokenEntity(
+data class DeviceToken(
     @Id val id: Long? = null,
     val deviceId: String,
     val tokenHash: String,

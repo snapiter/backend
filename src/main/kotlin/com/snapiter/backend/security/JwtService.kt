@@ -1,8 +1,7 @@
 package com.snapiter.backend.security
 
-import com.snapiter.backend.model.users.UserEntity
+import com.snapiter.backend.model.users.User
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
@@ -24,7 +23,7 @@ class JwtService(@Value("\${app.jwt.secret}") private val secret: String,
         val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
     }
 
-    fun issueAccessToken(user: UserEntity): String {
+    fun issueAccessToken(user: User): String {
         val now = Instant.now()
         return Jwts.builder()
             .subject(user.userId.toString())
