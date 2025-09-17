@@ -37,7 +37,7 @@ class DeviceController(
     @ApiResponses(
         ApiResponse(
             responseCode = "201", description = "Device created",
-            content = [Content(schema = Schema(implementation = Device::class))]
+            content = [Content(schema = Schema(implementation = QuickCreateRes::class))]
         ),
         ApiResponse(responseCode = "400", description = "Invalid input", content = [Content()])
     )
