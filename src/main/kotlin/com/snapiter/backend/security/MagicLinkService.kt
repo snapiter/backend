@@ -88,7 +88,7 @@ class MagicLinkService(
     private fun sendEmail(email: String, rawToken: String): Mono<Void> = Mono.fromCallable {
         val link = "$frontendMagicUrl?token=$rawToken"
         val msg = SimpleMailMessage().apply {
-            setFrom(fromEmail)
+            from = fromEmail
             setTo(email)
             subject = "Your sign-in link"
             text = """

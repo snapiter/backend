@@ -31,5 +31,5 @@ app:
     secret: "${JWT_SECRET:c-vm3KMpNiyaLmnDvZsDrgIPpr8OW_tO0zUI0R3kJGE}" # Change it on production!
   email:
     ttl-minutes: 15
-    frontend-email-url: "${FRONTEND_EMAIL_URL:http://localhost:3000/email}"
+    frontend-email-url: "${FRONTEND_EMAIL_URL:http://localhost:3000/dashboard/auth/consume}"
     from: "${FROM_EMAIL:noreply@snapiter.com}"

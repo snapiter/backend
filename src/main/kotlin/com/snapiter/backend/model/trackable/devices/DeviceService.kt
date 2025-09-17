@@ -2,6 +2,7 @@ package com.snapiter.backend.model.trackable.devices
 
 import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
@@ -31,6 +32,11 @@ class DeviceService(
     fun getDevice(trackableId: String, deviceId: String): Mono<Device> {
         return deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId)
     }
+
+    fun getDevices(trackableId: String): Flux<Device> {
+        return deviceRepository.findByTrackableId(trackableId)
+    }
+
 
     /**
      * Deletes the device for (trackableId, deviceId).

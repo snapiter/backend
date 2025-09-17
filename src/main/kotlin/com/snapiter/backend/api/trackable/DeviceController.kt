@@ -6,6 +6,7 @@ import com.snapiter.backend.security.UserPrincipal
 import com.snapiter.backend.util.Qr
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -58,6 +59,32 @@ class DeviceController(
             )
         }
     }
+
+    @GetMapping("")
+    @Operation(
+        summary = "Return all devices",
+        description = "Returns all registered devices for the given trackableId."
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200", description = "Devices found",
+            content = [Content(array = ArraySchema(schema = Schema(implementation = Device::class)))]
+        ),
+        ApiResponse(responseCode = "404", description = "No devices found", content = [Content()])
+    )
+    @PreAuthorize("@trackableAccessChecker.canAccess(#trackableId, authentication)")
+    fun getDevices(
+        @Parameter(description = "Trackable ID that owns the devices")
+        @PathVariable trackableId: String,
+    ): Mono<ResponseEntity<List<Device>>> {
+        return deviceService.getDevices(trackableId)
+            .collectList()
+            .map { devices ->
+                if (devices.isEmpty()) ResponseEntity.notFound().build()
+                else ResponseEntity.ok(devices)
+            }
+    }
+
 
     @GetMapping("/{deviceId}")
     @Operation(
