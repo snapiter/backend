@@ -1,5 +1,7 @@
 package com.snapiter.backend.security
 
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.JwtException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -26,13 +28,21 @@ class JwtAuthWebFilter(private val jwt: JwtService) : WebFilter {
                         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication))
                 }
                 .onErrorResume { error ->
-                    val response = exchange.response
-                    response.statusCode = HttpStatus.UNAUTHORIZED
-                    response.headers.add("Content-Type", "application/json")
+                    when (error) {
+                        is ExpiredJwtException, is JwtException -> {
+                            val response = exchange.response
+                            response.statusCode = HttpStatus.UNAUTHORIZED
+                            response.headers.add("Content-Type", "application/json")
 
-                    val errorBody = """{"error":"expired_token","message":"Token expired"}"""
-                    val buffer = response.bufferFactory().wrap(errorBody.toByteArray())
-                    response.writeWith(Mono.just(buffer))
+                            val errorBody = """{"error":"expired_token","message":"Token expired"}"""
+                            val buffer = response.bufferFactory().wrap(errorBody.toByteArray())
+                            response.writeWith(Mono.just(buffer))
+                        }
+                        else -> {
+                            // Let other errors bubble up
+                            Mono.error(error)
+                        }
+                    }
                 }
         }
         return chain.filter(exchange)
