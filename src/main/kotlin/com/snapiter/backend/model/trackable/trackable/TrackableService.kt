@@ -2,6 +2,7 @@ package com.snapiter.backend.model.trackable.trackable
 
 import com.snapiter.backend.api.trackable.CreateTrackableRequest
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import java.util.UUID
@@ -30,4 +31,8 @@ class TrackableService ( private val trackableRepository: TrackableRepository ){
 
     fun getByHostName(hostName: String): Mono<Trackable> =
         trackableRepository.findFirstByHostName(hostName)
+
+    fun findAllByUserId(userId: UUID): Flux<Trackable> =
+        trackableRepository.findAllByUserId(userId)
+
 }
