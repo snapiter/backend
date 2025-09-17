@@ -1,6 +1,7 @@
 package com.snapiter.backend.security
 
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
@@ -14,15 +15,25 @@ class JwtAuthWebFilter(private val jwt: JwtService) : WebFilter {
         val authHeader = exchange.request.headers.getFirst(HttpHeaders.AUTHORIZATION)
         if (authHeader?.startsWith("Bearer ") == true) {
             val token = authHeader.removePrefix("Bearer ").trim()
-            return jwt.parse(token).flatMap { principal ->
-                val authentication = UsernamePasswordAuthenticationToken(
-                    UserPrincipal(principal.userId, principal.email),
-                    token,
-                    listOf(SimpleGrantedAuthority("ROLE_USER"))
-                )
-                chain.filter(exchange)
-                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication))
-            }
+            return jwt.parse(token)
+                .flatMap { principal ->
+                    val authentication = UsernamePasswordAuthenticationToken(
+                        UserPrincipal(principal.userId, principal.email),
+                        token,
+                        listOf(SimpleGrantedAuthority("ROLE_USER"))
+                    )
+                    chain.filter(exchange)
+                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication))
+                }
+                .onErrorResume { error ->
+                    val response = exchange.response
+                    response.statusCode = HttpStatus.UNAUTHORIZED
+                    response.headers.add("Content-Type", "application/json")
+
+                    val errorBody = """{"error":"expired_token","message":"Token expired"}"""
+                    val buffer = response.bufferFactory().wrap(errorBody.toByteArray())
+                    response.writeWith(Mono.just(buffer))
+                }
         }
         return chain.filter(exchange)
     }
