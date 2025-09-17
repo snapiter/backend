@@ -28,6 +28,7 @@ class SecurityConfig(
         return http
             // Apply this chain ONLY to /api/**
             .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/api/**"))
+            .cors { it.disable() }
             .csrf { it.disable() }
             .httpBasic { it.disable() }
             .formLogin { it.disable() }
@@ -44,4 +45,6 @@ class SecurityConfig(
             .addFilterAt(JwtAuthWebFilter(jwtService), SecurityWebFiltersOrder.AUTHENTICATION)
             .build()
     }
+
+
 }
