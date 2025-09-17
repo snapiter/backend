@@ -23,5 +23,6 @@ data class Trackable (
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
     val createdAt: LocalDateTime?,
 
+    @JsonIgnore
     val userId: UUID
 )

@@ -46,13 +46,11 @@ class TrackableController(
     @GetMapping("")
     @Operation(summary = "Get all trackables")
     @ApiResponse(responseCode = "200", description = "OK")
-    @ApiResponse(responseCode = "404", description = "Not found")
     fun getAll(@AuthenticationPrincipal principal: AppPrincipal): Mono<ResponseEntity<List<Trackable>>> =
         trackableService.findAllByUserId(principal.userId)
             .collectList()
             .map { trackables ->
-                if (trackables.isEmpty()) ResponseEntity.notFound().build()
-                else ResponseEntity.ok(trackables)
+                 ResponseEntity.ok(trackables)
             }
 
 

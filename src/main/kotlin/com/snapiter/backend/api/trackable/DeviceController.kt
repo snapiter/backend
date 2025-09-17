@@ -70,7 +70,6 @@ class DeviceController(
             responseCode = "200", description = "Devices found",
             content = [Content(array = ArraySchema(schema = Schema(implementation = Device::class)))]
         ),
-        ApiResponse(responseCode = "404", description = "No devices found", content = [Content()])
     )
     @PreAuthorize("@trackableAccessChecker.canAccess(#trackableId, authentication)")
     fun getDevices(
@@ -80,8 +79,7 @@ class DeviceController(
         return deviceService.getDevices(trackableId)
             .collectList()
             .map { devices ->
-                if (devices.isEmpty()) ResponseEntity.notFound().build()
-                else ResponseEntity.ok(devices)
+                ResponseEntity.ok(devices)
             }
     }
 
