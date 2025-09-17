@@ -13,6 +13,9 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.reactive.CorsWebFilter
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebFluxSecurity
@@ -22,6 +25,22 @@ class SecurityConfig(
     private val deviceTokenService: DeviceTokenService,
     private val deviceRepository: DeviceRepository
 ) {
+
+    @Bean
+    fun corsWebFilter(): CorsWebFilter {
+        val corsConfig = CorsConfiguration().apply {
+            allowedOriginPatterns = listOf("*")
+            allowedMethods = listOf("*")
+            allowedHeaders = listOf("*")
+            allowCredentials = true
+        }
+
+        val source = UrlBasedCorsConfigurationSource().apply {
+            registerCorsConfiguration("/**", corsConfig)
+        }
+
+        return CorsWebFilter(source)
+    }
 
     @Bean
     fun apiSecurityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
