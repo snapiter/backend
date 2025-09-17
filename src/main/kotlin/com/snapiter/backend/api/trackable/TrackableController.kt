@@ -43,7 +43,6 @@ class TrackableController(
     }
 
 
-    @PreAuthorize("@trackableAccessChecker.canAccess(#trackableId, authentication)")
     @GetMapping("")
     @Operation(summary = "Get all trackables")
     @ApiResponse(responseCode = "200", description = "OK")
