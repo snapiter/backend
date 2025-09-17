@@ -52,6 +52,7 @@ class SecurityConfig(
             .httpBasic { it.disable() }
             .formLogin { it.disable() }
             .authorizeExchange {
+                it.pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 it.pathMatchers(
                     "/api/auth/login/email/request",
                     "/api/auth/login/email/consume",
