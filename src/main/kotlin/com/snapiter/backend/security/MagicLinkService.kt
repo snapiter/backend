@@ -24,6 +24,7 @@ class MagicLinkService(
     private val mailSender: JavaMailSender,
     @Value("\${app.email.ttl-minutes}") private val ttlMinutes: Long,
     @Value("\${app.email.frontend-email-url}") private val frontendMagicUrl: String,
+    @Value("\${app.email.from}") private val fromEmail: String,
 ) {
     private fun normalizeEmail(raw: String) = raw.trim().lowercase()
 
@@ -87,6 +88,7 @@ class MagicLinkService(
     private fun sendEmail(email: String, rawToken: String): Mono<Void> = Mono.fromCallable {
         val link = "$frontendMagicUrl?token=$rawToken"
         val msg = SimpleMailMessage().apply {
+            setFrom(fromEmail)
             setTo(email)
             subject = "Your sign-in link"
             text = """

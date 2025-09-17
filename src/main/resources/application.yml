@@ -32,3 +32,4 @@ app:
   email:
     ttl-minutes: 15
     frontend-email-url: "${FRONTEND_EMAIL_URL:http://localhost:3000/email}"
+    from: "${FROM_EMAIL:noreply@snapiter.com}"
