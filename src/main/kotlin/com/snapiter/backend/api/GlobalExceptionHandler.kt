@@ -45,7 +45,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException::class)
     fun invalidTokenException(ex: UnauthorizedException): Mono<ResponseEntity<ErrorResponse>> {
         val errorResponse = ErrorResponse(
-            error = "unauthorized",
+            error = "unauthorized_" + ex.message,
             message = "You are not authorized"
         )
         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
