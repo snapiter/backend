@@ -44,8 +44,14 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
 
     fun validate(raw: String): Mono<DeviceToken> =
         repo.findByTokenHash(sha256(raw))
-            .filter { it.revokedAt == null }
+            .doOnNext { println("Found token in repo: $it") }
+            .filter {
+                val keep = it.revokedAt == null
+                println("Filter revokedAt check: ${it.revokedAt}, keep=$keep, raw=$raw")
+                keep
+            }
             .switchIfEmpty(Mono.error(UnauthorizedTokenException("invalid_device_token")))
+
 }
 
 class UnauthorizedTokenException(msg: String) : RuntimeException(msg)

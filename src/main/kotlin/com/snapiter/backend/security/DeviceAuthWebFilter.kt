@@ -20,6 +20,7 @@ class DeviceAuthWebFilter(
         val raw = exchange.request.headers.getFirst("X-Device-Token")?.trim()
             ?: return chain.filter(exchange) // no header → unauthenticated
 
+
         return tokenSvc.validate(raw) // validate token
             .filter { it.deviceId == null } // only pass through active deviceIds
             .switchIfEmpty(Mono.error(UnauthorizedRefreshTokenException("device_token_invalid")))
