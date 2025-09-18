@@ -50,12 +50,12 @@ CREATE INDEX ON refresh_tokens (expires_at);
 
 CREATE TABLE device_tokens (
   id          BIGSERIAL PRIMARY KEY,
-  trackable_id   TEXT NOT NULL UNIQUE,
+  trackable_id   TEXT NOT NULL,
+  device_id   TEXT NOT NULL,
   token_hash  TEXT NOT NULL UNIQUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   revoked_at  TIMESTAMPTZ
 );
-
 
 -------------------------------------
 

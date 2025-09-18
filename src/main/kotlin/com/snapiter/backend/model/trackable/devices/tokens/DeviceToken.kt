@@ -13,3 +13,5 @@ data class DeviceToken(
     val createdAt: OffsetDateTime,
     val revokedAt: OffsetDateTime?
 )
+
+
