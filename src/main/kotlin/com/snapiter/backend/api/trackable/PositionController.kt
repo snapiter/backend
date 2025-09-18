@@ -23,6 +23,8 @@ import java.time.OffsetDateTime
 @RestController
 @RequestMapping("/api/trackables")
 @Tag(name = "Trackable Positions", description = "Endpoint for devices to send their current geographic position.")
+@PreAuthorize("hasAnyRole('DEVICE')")
+@SecurityRequirement(name = "deviceToken")
 class PositionController(
     private val positionService: PositionService
 ) {
@@ -49,27 +51,6 @@ class PositionController(
     ): Mono<ResponseEntity<Void>> {
         return positionService.report(trackableId, deviceId, request)
             .thenReturn(ResponseEntity.noContent().build())
-    }
-
-
-    @GetMapping("/{trackableId}/positions")
-    @ApiResponse(
-        responseCode = "200", description = "Return a list of position reports",
-        content = [Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = PositionReport::class)
-        )]
-    )
-    fun getPositions(
-        @PathVariable trackableId: String,
-        @RequestParam(required = false)
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) fromDate: LocalDateTime?,
-        @RequestParam(required = false)
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) untilDate: LocalDateTime?,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "500") size: Int
-    ): Flux<PositionReport> {
-        return positionService.positions(PositionType.ALL, trackableId, fromDate, untilDate, page, size)
     }
 }
 
