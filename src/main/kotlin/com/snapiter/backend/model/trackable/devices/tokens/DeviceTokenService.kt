@@ -28,13 +28,13 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
         val row = DeviceToken(null, trackableId, null,hash, now(), null)
 
         return repo.findByTrackableId(trackableId)
-            // Automatically revoke older tokens.
+            // Revoke all older
             .flatMap { existing ->
-                val revoked = existing.copy(revokedAt = now())
-                repo.save(revoked).then(repo.save(row))
+                repo.save(existing.copy(revokedAt = now()))
             }
-            .switchIfEmpty(repo.save(row))
+            .then(repo.save(row))
             .thenReturn(raw)
+
     }
 
     fun assignDeviceToToken(deviceToken: DeviceToken, deviceId: String): Mono<DeviceToken> {
