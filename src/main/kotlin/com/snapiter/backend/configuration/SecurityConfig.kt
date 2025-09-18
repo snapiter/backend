@@ -44,6 +44,17 @@ class SecurityConfig(
     }
 
     @Bean
+    fun deviceRegisterSecurityChain(http: ServerHttpSecurity): SecurityWebFilterChain {
+        return http
+            .securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/api/trackables/*/devices/register"))
+            .csrf { it.disable() }
+            .cors { it.disable() }
+            .authorizeExchange { exchanges ->
+                exchanges.anyExchange().permitAll()
+            }
+            .build()
+    }
+    @Bean
     fun apiSecurityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http
             // Apply this chain ONLY to /api/**
@@ -68,10 +79,6 @@ class SecurityConfig(
                     "/api/auth/logout",
                 ).permitAll()
 
-                it.pathMatchers(HttpMethod.POST, "/api/trackables/*/devices/register").permitAll()
-                // Deny everything else under devices
-                it.pathMatchers("/api/trackables/*/devices/**").denyAll()
-                
                 it.pathMatchers("/api/**").authenticated()
             }
             .addFilterAt(DeviceAuthWebFilter(deviceTokenService, deviceRepository), SecurityWebFiltersOrder.AUTHENTICATION)
