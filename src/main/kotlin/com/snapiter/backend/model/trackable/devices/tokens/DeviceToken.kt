@@ -7,7 +7,8 @@ import java.time.OffsetDateTime
 @Table("device_tokens")
 data class DeviceToken(
     @Id val id: Long? = null,
-    val deviceId: String,
+    val trackableId: String,
+    val deviceId: String? = null,
     val tokenHash: String,
     val createdAt: OffsetDateTime,
     val revokedAt: OffsetDateTime?

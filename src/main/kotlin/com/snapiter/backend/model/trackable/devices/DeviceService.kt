@@ -1,5 +1,6 @@
 package com.snapiter.backend.model.trackable.devices
 
+import com.snapiter.backend.model.trackable.devices.tokens.DeviceToken
 import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -11,22 +12,18 @@ class DeviceService(
     private val deviceRepository: DeviceRepository,
     private val deviceTokenService: DeviceTokenService
 ) {
-    fun issueDevice(trackableId: String, deviceId: String): Mono<String> {
-        return this.createDevice(trackableId, deviceId).flatMap {
-            deviceTokenService.issue(it.deviceId)
-        }
-    }
-
-    fun createDevice(trackableId: String, deviceId: String): Mono<Device> {
+    fun createDevice(deviceToken: DeviceToken, deviceId: String, name: String): Mono<Device> {
         val now = LocalDateTime.now()
         val device = Device(
             id = null,
-            trackableId = trackableId,
+            trackableId = deviceToken.trackableId,
             deviceId = deviceId,
             createdAt = now,
-            lastReportedAt = now
+            lastReportedAt = now,
+            name = name
         )
-        return deviceRepository.save(device)
+        return deviceTokenService.assignDeviceToToken(deviceToken, deviceId)
+            .then(deviceRepository.save(device))
     }
 
     fun getDevice(trackableId: String, deviceId: String): Mono<Device> {

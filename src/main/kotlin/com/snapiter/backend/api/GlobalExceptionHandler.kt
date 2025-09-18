@@ -1,8 +1,10 @@
 package com.snapiter.backend.api
 
+import com.snapiter.backend.model.trackable.devices.tokens.UnauthorizedTokenException
+import com.snapiter.backend.model.trackable.devices.tokens.UnclaimedTokenNotFound
 import com.snapiter.backend.security.ExpiredTokenException
 import com.snapiter.backend.security.InvalidTokenException
-import com.snapiter.backend.security.UnauthorizedException
+import com.snapiter.backend.security.UnauthorizedRefreshTokenException
 import io.jsonwebtoken.ExpiredJwtException
 import jakarta.mail.SendFailedException
 import org.springframework.dao.DuplicateKeyException
@@ -42,14 +44,34 @@ class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
     }
 
-    @ExceptionHandler(UnauthorizedException::class)
-    fun invalidTokenException(ex: UnauthorizedException): Mono<ResponseEntity<ErrorResponse>> {
+    @ExceptionHandler(UnauthorizedRefreshTokenException::class)
+    fun invalidTokenException(ex: UnauthorizedRefreshTokenException): Mono<ResponseEntity<ErrorResponse>> {
         val errorResponse = ErrorResponse(
             error = "unauthorized_" + ex.message,
             message = "You are not authorized"
         )
         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
     }
+    @ExceptionHandler(UnauthorizedTokenException::class)
+    fun invalidTokenException(ex: UnauthorizedTokenException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "unauthorized_token_" + ex.message,
+            message = "You are not authorized"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
+    }
+
+
+
+    @ExceptionHandler(UnclaimedTokenNotFound::class)
+    fun unclaimedTokenException(ex: UnclaimedTokenNotFound): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = ex.message ?: "unclaimed_token_error",
+            message = "Could not find unclaimed token"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse))
+    }
+
 
 
     @ExceptionHandler(ExpiredJwtException::class)

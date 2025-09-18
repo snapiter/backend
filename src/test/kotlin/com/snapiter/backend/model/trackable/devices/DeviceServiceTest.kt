@@ -1,5 +1,6 @@
 package com.snapiter.backend.model.trackable.devices
 
+import com.snapiter.backend.model.trackable.devices.tokens.DeviceToken
 import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -9,9 +10,13 @@ import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -33,6 +38,7 @@ class DeviceServiceTest {
     fun `createDevice saves with correct fields and returns saved device`() {
         val trackableId = "track-123"
         val deviceId = "dev-abc"
+        val name = "Name"
 
         val captor: ArgumentCaptor<Device> = ArgumentCaptor.forClass(Device::class.java)
 
@@ -43,15 +49,20 @@ class DeviceServiceTest {
                 Mono.just(d.copy(id = 1L))
             }
 
+        Mockito.`when`(deviceTokenService.assignDeviceToToken(any(), eq(deviceId))).thenReturn(
+            Mono.empty()
+        )
+
         val before = LocalDateTime.now().minusSeconds(2)
 
-        val result = deviceService.createDevice(trackableId, deviceId)
+        val result = deviceService.createDevice(deviceToken(trackableId), deviceId, name)
 
         StepVerifier.create(result)
             .assertNext { saved ->
                 assertEquals(1L, saved.id)
                 assertEquals(trackableId, saved.trackableId)
                 assertEquals(deviceId, saved.deviceId)
+                assertEquals(name, saved.name)
 
                 val createdAt = saved.createdAt
                 val lastReportedAt = saved.lastReportedAt
@@ -85,7 +96,8 @@ class DeviceServiceTest {
             trackableId = trackableId,
             deviceId = deviceId,
             createdAt = LocalDateTime.now().minusDays(1),
-            lastReportedAt = LocalDateTime.now()
+            lastReportedAt = LocalDateTime.now(),
+            name = "NAME"
         )
 
         Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId))
@@ -109,7 +121,8 @@ class DeviceServiceTest {
             trackableId = trackableId,
             deviceId = deviceId,
             createdAt = LocalDateTime.now().minusDays(2),
-            lastReportedAt = LocalDateTime.now()
+            lastReportedAt = LocalDateTime.now(),
+            name = "NAME"
         )
 
         Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId))
@@ -144,5 +157,10 @@ class DeviceServiceTest {
         verify(deviceRepository).findByDeviceIdAndTrackableId(deviceId, trackableId)
         // Ensure delete is never called
         verify(deviceRepository, never()).delete(Mockito.any(Device::class.java))
+    }
+
+
+    private fun deviceToken(trackableId: String): DeviceToken {
+        return DeviceToken(null, trackableId, null,"token", OffsetDateTime.now(ZoneOffset.UTC), null)
     }
 }

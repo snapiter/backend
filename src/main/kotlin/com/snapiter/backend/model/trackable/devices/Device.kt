@@ -13,6 +13,7 @@ data class Device (
     @Id var id: Long?,
     val trackableId: String,
     val deviceId: String,
+    val name: String?,
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
     val createdAt: LocalDateTime?,

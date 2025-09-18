@@ -50,7 +50,7 @@ CREATE INDEX ON refresh_tokens (expires_at);
 
 CREATE TABLE device_tokens (
   id          BIGSERIAL PRIMARY KEY,
-  device_id   TEXT NOT NULL UNIQUE,   -- one active token per device
+  trackable_id   TEXT NOT NULL UNIQUE,
   token_hash  TEXT NOT NULL UNIQUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   revoked_at  TIMESTAMPTZ
@@ -67,8 +67,7 @@ CREATE TABLE trackables (
     id              BIGSERIAL PRIMARY KEY,
     trackable_id    TEXT NOT NULL UNIQUE,
     name            TEXT,
-    website_title   TEXT NOT NULL DEFAULT '',
-    website         TEXT NOT NULL DEFAULT '',
+    title           TEXT NOT NULL DEFAULT '',
     host_name       TEXT NOT NULL UNIQUE,
     icon            TEXT NOT NULL DEFAULT '',
     created_at      TIMESTAMPTZ,
@@ -84,6 +83,7 @@ CREATE TABLE devices (
     id                     BIGSERIAL PRIMARY KEY,
     trackable_id           TEXT NOT NULL,
     device_id              TEXT NOT NULL,
+    name                   TEXT,
     created_at             TIMESTAMPTZ,
     last_reported_at       TIMESTAMPTZ,
     CONSTRAINT fk_devices_trackable

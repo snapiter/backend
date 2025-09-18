@@ -22,13 +22,13 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(d.digest(s.toByteArray()))
     }
 
-    /** Issue (or rotate) a token for this device; returns RAW token (show once). */
-    fun issue(deviceId: String): Mono<String> {
+    fun issue(trackableId: String): Mono<String> {
         val raw = newRaw()
         val hash = sha256(raw)
-        val row = DeviceToken(null, deviceId, hash, now(), null)
+        val row = DeviceToken(null, trackableId, null,hash, now(), null)
 
-        return repo.findByDeviceId(deviceId)
+        return repo.findByTrackableId(trackableId)
+            // Automatically revoke older tokens.
             .flatMap { existing ->
                 val revoked = existing.copy(revokedAt = now())
                 repo.save(revoked).then(repo.save(row))
@@ -37,17 +37,16 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
             .thenReturn(raw)
     }
 
-    fun revoke(deviceId: String): Mono<Void> =
-        repo.findByDeviceId(deviceId)
-            .flatMap { repo.save(it.copy(revokedAt = now())) }
-            .then()
+    fun assignDeviceToToken(deviceToken: DeviceToken, deviceId: String): Mono<DeviceToken> {
+        return repo.save(deviceToken.copy(deviceId = deviceId))
+    }
 
-    /** Validate raw token → returns deviceId if valid & not revoked. */
-    fun validate(raw: String): Mono<String> =
+
+    fun validate(raw: String): Mono<DeviceToken> =
         repo.findByTokenHash(sha256(raw))
             .filter { it.revokedAt == null }
-            .map { it.deviceId }
-            .switchIfEmpty(Mono.error(UnauthorizedException("invalid_device_token")))
+            .switchIfEmpty(Mono.error(UnauthorizedTokenException("invalid_device_token")))
 }
 
-class UnauthorizedException(msg: String) : RuntimeException(msg)
+class UnauthorizedTokenException(msg: String) : RuntimeException(msg)
+class UnclaimedTokenNotFound(msg: String) : RuntimeException(msg)

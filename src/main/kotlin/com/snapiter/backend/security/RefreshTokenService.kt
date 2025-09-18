@@ -71,19 +71,19 @@ class RefreshTokenService(
 
     fun refresh(exchange: ServerWebExchange): Mono<Tokens> {
         val raw = exchange.request.cookies.getFirst("refresh_token")?.value
-            ?: return Mono.error(UnauthorizedException("missing_refresh_token"))
+            ?: return Mono.error(UnauthorizedRefreshTokenException("missing_refresh_token"))
         val hash = sha256(raw)
         val now = nowUtc()
 
         return repo.findByTokenHash(hash)
-            .switchIfEmpty(Mono.error(UnauthorizedException("invalid_refresh_token")))
+            .switchIfEmpty(Mono.error(UnauthorizedRefreshTokenException("invalid_refresh_token")))
             .flatMap { rt ->
-                if (rt.revokedAt != null) return@flatMap Mono.error(UnauthorizedException("revoked_refresh_token"))
-                if (now.isAfter(rt.expiresAt)) return@flatMap Mono.error(UnauthorizedException("expired_refresh_token"))
-                if (rt.replacedBy != null) return@flatMap Mono.error(UnauthorizedException("reused_refresh_token"))
+                if (rt.revokedAt != null) return@flatMap Mono.error(UnauthorizedRefreshTokenException("revoked_refresh_token"))
+                if (now.isAfter(rt.expiresAt)) return@flatMap Mono.error(UnauthorizedRefreshTokenException("expired_refresh_token"))
+                if (rt.replacedBy != null) return@flatMap Mono.error(UnauthorizedRefreshTokenException("reused_refresh_token"))
 
                 // Load user
-                userRepo.findByUserId(rt.userId).switchIfEmpty(Mono.error(UnauthorizedException("user_not_found")))
+                userRepo.findByUserId(rt.userId).switchIfEmpty(Mono.error(UnauthorizedRefreshTokenException("user_not_found")))
                     .flatMap { user ->
                         val childRaw = newRawToken()
                         val childHash = sha256(childRaw)
@@ -131,4 +131,4 @@ class RefreshTokenService(
 }
 
 data class Tokens(val accessToken: String)
-class UnauthorizedException(msg: String) : RuntimeException(msg)
+class UnauthorizedRefreshTokenException(msg: String) : RuntimeException(msg)
