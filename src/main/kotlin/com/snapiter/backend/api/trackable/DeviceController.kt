@@ -56,31 +56,6 @@ class DeviceController(
         }
     }
 
-    @PostMapping("/register")
-    @Operation(
-        summary = "Register a device",
-        description = "Register a device with a token"
-    )
-    @ApiResponses(
-        ApiResponse(
-            responseCode = "201", description = "Device registered",
-            content = [Content(schema = Schema(implementation = QuickCreateRes::class))]
-        ),
-        ApiResponse(responseCode = "400", description = "Invalid input", content = [Content()]),
-        ApiResponse(responseCode = "404", description = "Trying to register with an token that either has been claimed or doesnt exist.", content = [Content()])
-    )
-    fun registerDevice(
-        @PathVariable trackableId: String,
-        @RequestBody req: RegisterDevice
-    ): Mono<Device> {
-        return deviceTokenService.validate(req.token)
-            .filter { it.trackableId == trackableId } // only allow correct trackable
-            .switchIfEmpty(Mono.error(UnauthorizedTokenException("Invalid trackableId for token")))
-            .flatMap {
-                deviceService.createDevice(it, req.deviceId, req.name)
-            }
-    }
-
     @GetMapping("")
     @Operation(
         summary = "Return all devices",
@@ -153,14 +128,5 @@ class DeviceController(
 data class QuickCreateRes(
     val deviceToken: String,
     val qrDataUrl: String,
-)
-
-data class RegisterDevice(
-    @field:NotBlank
-    val deviceId: String,
-    @field:NotBlank
-    val name: String,
-    @field:NotBlank
-    val token: String,
 )
 

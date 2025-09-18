@@ -68,6 +68,10 @@ class SecurityConfig(
                     "/api/auth/logout",
                 ).permitAll()
 
+                it.pathMatchers(HttpMethod.POST, "/api/trackables/*/devices/register").permitAll()
+                // Deny everything else under devices
+                it.pathMatchers("/api/trackables/*/devices/**").denyAll()
+                
                 it.pathMatchers("/api/**").authenticated()
             }
             .addFilterAt(DeviceAuthWebFilter(deviceTokenService, deviceRepository), SecurityWebFiltersOrder.AUTHENTICATION)
