@@ -1,7 +1,8 @@
 plugins {
 	kotlin("jvm") version "2.2.20"
 	kotlin("plugin.spring") version "2.2.20"
-	id("org.springframework.boot") version "4.0.0-SNAPSHOT"
+	id("org.springframework.boot") version "4.0.0-M2"
+//	id("org.springframework.boot") version "3.5.5"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -22,6 +23,7 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+
 	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.flywaydb:flyway-database-postgresql")
