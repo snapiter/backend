@@ -15,8 +15,7 @@ data class Trackable (
 
     val trackableId: String?,
     val name: String?,
-    val websiteTitle: String = "",
-    val website: String = "",
+    val title: String = "",
     val hostName: String = "",
     val icon: String = "",
 

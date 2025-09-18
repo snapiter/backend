@@ -52,8 +52,7 @@ class TrackableControllerTest {
         val body = """
             {
               "name": "SnapIter name",
-              "websiteTitle": "SnapIter",
-              "website": "https://snapiter.com",
+              "title": "SnapIter",
               "hostName": "snapiter.eu",
               "icon": "📍"
             }
@@ -74,8 +73,7 @@ class TrackableControllerTest {
         val saved = captor.firstValue
 
         assertEquals("SnapIter name", saved.name)
-        assertEquals("SnapIter", saved.websiteTitle)
-        assertEquals("https://snapiter.com", saved.website)
+        assertEquals("SnapIter", saved.title)
         assertEquals("snapiter.eu", saved.hostName)
         assertEquals("📍", saved.icon)
     }
@@ -98,8 +96,7 @@ class TrackableControllerTest {
             .expectBody()
             .jsonPath("$.trackableId").isEqualTo("abc")
             .jsonPath("$.name").isEqualTo("SnapIter name")
-            .jsonPath("$.websiteTitle").isEqualTo("SnapIter")
-            .jsonPath("$.website").isEqualTo("https://snapiter.com")
+            .jsonPath("$.title").isEqualTo("SnapIter")
             .jsonPath("$.hostName").isEqualTo("snapiter.eu")
             .jsonPath("$.icon").isEqualTo("📍")
     }
@@ -107,8 +104,7 @@ class TrackableControllerTest {
     private fun trackable(): Trackable = Trackable(
         trackableId = "abc",
         name = "SnapIter name",
-        websiteTitle = "SnapIter",
-        website = "https://snapiter.com",
+        title = "SnapIter",
         hostName = "snapiter.eu",
         icon = "📍",
         createdAt = LocalDateTime.parse("2025-09-10T12:34:56"),
@@ -139,8 +135,7 @@ class TrackableControllerTest {
         val entity = Trackable(
             trackableId = "xyz",
             name = "By Host",
-            websiteTitle = "SnapIter",
-            website = "https://snapiter.com",
+            title = "SnapIter",
             hostName = "snapiter.eu",
             icon = "📍",
             createdAt = LocalDateTime.parse("2025-09-10T12:34:56"),

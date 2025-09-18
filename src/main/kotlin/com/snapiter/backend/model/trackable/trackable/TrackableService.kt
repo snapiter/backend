@@ -13,8 +13,7 @@ class TrackableService ( private val trackableRepository: TrackableRepository ){
         val entity = Trackable(
             trackableId = UUID.randomUUID().toString(),
             name = req.name,
-            websiteTitle = req.websiteTitle ?: "",
-            website = req.website ?: "",
+            title = req.title ?: "",
             hostName = req.hostName ?: "",
             icon = req.icon ?: "",
             createdAt = LocalDateTime.now(),

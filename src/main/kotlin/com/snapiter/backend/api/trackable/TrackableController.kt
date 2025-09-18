@@ -3,8 +3,6 @@ package com.snapiter.backend.api.trackable
 import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableService
 import com.snapiter.backend.security.AppPrincipal
-import com.snapiter.backend.security.DevicePrincipal
-import com.snapiter.backend.security.UserPrincipal
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -78,8 +76,7 @@ class TrackableController(
 data class CreateTrackableRequest(
     @field:NotBlank
     val name: String,
-    val websiteTitle: String? = null,
-    val website: String? = null,
+    val title: String? = null,
     val hostName: String? = null,
     val icon: String? = null
 )
