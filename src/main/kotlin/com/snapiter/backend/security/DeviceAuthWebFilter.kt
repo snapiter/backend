@@ -21,9 +21,7 @@ class DeviceAuthWebFilter(
             ?: return chain.filter(exchange) // no header → unauthenticated
 
 
-        return tokenSvc.validate(raw) // validate token
-            .filter { it.deviceId == null } // only pass through active deviceIds
-            .switchIfEmpty(Mono.error(UnauthorizedRefreshTokenException("device_token_invalid")))
+        return tokenSvc.validate(raw)
             .flatMap { deviceToken ->
                 val deviceId = deviceToken.deviceId
                     ?: return@flatMap Mono.error(UnauthorizedTokenException("missing_device_id"))
