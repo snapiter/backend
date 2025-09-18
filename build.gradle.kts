@@ -47,6 +47,18 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
+
+
+
+	// For marker up and download to S3
+	implementation(platform("software.amazon.awssdk:bom:2.17.292"))
+	implementation("software.amazon.awssdk:s3-transfer-manager:2.19.13")
+	implementation("software.amazon.awssdk.crt:aws-crt:0.21.0")
+	implementation("software.amazon.awssdk:s3")
+	implementation("software.amazon.awssdk:netty-nio-client")
+
+
+
 	testImplementation("org.springframework.security:spring-security-test")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")

@@ -1,0 +1,34 @@
+package com.snapiter.backend.model.trackable.markers
+
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
+import java.time.LocalDateTime
+
+@Table("markers")
+data class Marker (
+    @JsonIgnore
+    @Id var id: Long?,
+    val trackableId: String,
+    val markerId: String,
+    val fileSize: Number,
+    val fileType: String,
+    val latitude: Double?,
+    val longitude: Double?,
+    val title: String = "",
+    val description: String = "",
+    val hasThumbnail: Boolean = false,
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
+    val createdAt: LocalDateTime?
+) {
+    companion object {
+        fun create(trackableId: String, markerId: String, latitude: Double, longitude: Double): Marker {
+            return Marker(null, trackableId, markerId, 0,"",latitude, longitude, "","",false, null)
+        }
+        fun create(trackableId: String, markerId: String, fileSize: Number, fileType: String): Marker {
+            return Marker(null, trackableId, markerId, fileSize, fileType, null, null,"","",false, null)
+        }
+    }
+}

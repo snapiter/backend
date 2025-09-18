@@ -1,8 +1,6 @@
 -- V1__init_schema.sql
 -- Initial schema for SnapIter backend (PostgreSQL)
 
-
-
 -- MAGIC LINKS
 CREATE EXTENSION IF NOT EXISTS citext;
 
@@ -130,3 +128,22 @@ CREATE TABLE trip (
     CONSTRAINT ux_trip_trackable_slug UNIQUE (trackable_id, slug)
 );
 
+
+
+
+CREATE TABLE IF NOT EXISTS markers (
+    id BIGSERIAL PRIMARY KEY,
+    trackable_id VARCHAR(255) NOT NULL,
+    marker_id VARCHAR(255) NOT NULL,
+    file_size NUMERIC NOT NULL,
+    file_type VARCHAR(255) NOT NULL,
+    has_thumbnail BOOLEAN DEFAULT FALSE,
+    latitude DOUBLE PRECISION NULL,
+    longitude DOUBLE PRECISION NULL,
+    title VARCHAR(255) NULL,
+    description VARCHAR(255) NULL,
+    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_trip_trackable
+            FOREIGN KEY (trackable_id) REFERENCES trackables(trackable_id)
+            ON DELETE CASCADE
+    );

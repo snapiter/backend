@@ -33,3 +33,12 @@ app:
     ttl-minutes: 15
     frontend-email-url: "${FRONTEND_EMAIL_URL:http://localhost:3000/dashboard/auth/consume}"
     from: "${FROM_EMAIL:noreply@snapiter.com}"
+
+
+aws:
+  s3:
+    bucket: ${BUCKET:fmv}
+    region: ${AWS_REGION:eu-central-1}
+    endpoint: ${AWS_END_POINT:http://127.0.0.1:9000}
+    accessKeyId: ${AWS_ACCESS_KEY:admin}
+    secret-access-key: ${AWS_SECRET_KEY:password}
