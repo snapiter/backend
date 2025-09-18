@@ -62,15 +62,6 @@ class TrackableController(
             .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(ResponseEntity.notFound().build())
 
-
-    @GetMapping("/host/{hostName}")
-    @Operation(summary = "Get a trackable by host name")
-    @ApiResponse(responseCode = "200", description = "OK")
-    @ApiResponse(responseCode = "404", description = "Not found")
-    fun getByHost(@PathVariable hostName: String): Mono<ResponseEntity<Trackable>> =
-        trackableService.getByHostName(hostName)
-            .map { ResponseEntity.ok(it) }
-            .defaultIfEmpty(ResponseEntity.notFound().build())
 }
 
 data class CreateTrackableRequest(

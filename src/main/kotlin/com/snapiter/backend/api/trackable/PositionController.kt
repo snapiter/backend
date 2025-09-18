@@ -23,7 +23,6 @@ import java.time.OffsetDateTime
 @RestController
 @RequestMapping("/api/trackables")
 @Tag(name = "Trackable Positions", description = "Endpoint for devices to send their current geographic position.")
-
 class PositionController(
     private val positionService: PositionService
 ) {

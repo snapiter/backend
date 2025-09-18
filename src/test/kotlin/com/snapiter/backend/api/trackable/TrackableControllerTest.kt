@@ -27,7 +27,7 @@ import com.snapiter.backend.security.TrackableSecurityService
 import org.mockito.kotlin.eq
 import java.util.UUID
 
-@WebFluxTest(controllers = [TrackableController::class])
+@WebFluxTest(controllers = [TrackableController::class, PublicTrackableController::class])
 @Import(TestSecurityConfig::class, TrackableSecurityService::class)
 @AutoConfigureWebTestClient
 class TrackableControllerTest {

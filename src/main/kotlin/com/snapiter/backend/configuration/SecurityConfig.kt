@@ -58,7 +58,9 @@ class SecurityConfig(
                     "/api/auth/login/email/request",
                     "/api/auth/login/email/consume",
                     "/api/auth/refresh",
-                    "/api/auth/logout"
+                    "/api/auth/logout",
+                    "/api/trackables/*/positions",
+                    "/api/trackables/host/**"
                 ).permitAll()
                 it.pathMatchers("/api/**").authenticated()
             }
