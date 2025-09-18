@@ -54,14 +54,20 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .authorizeExchange {
                 it.pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                it.pathMatchers(HttpMethod.GET,
+                    "/api/trackables/*/trips",
+                    "/api/trackables/*/trips/*",
+                    "/api/trackables/*/trips/*/positions",
+                    "/api/trackables/*/positions",
+                    "/api/trackables/host/**"
+                ).permitAll()
                 it.pathMatchers(
                     "/api/auth/login/email/request",
                     "/api/auth/login/email/consume",
                     "/api/auth/refresh",
                     "/api/auth/logout",
-                    "/api/trackables/*/positions",
-                    "/api/trackables/host/**"
                 ).permitAll()
+
                 it.pathMatchers("/api/**").authenticated()
             }
             .addFilterAt(DeviceAuthWebFilter(deviceTokenService, deviceRepository), SecurityWebFiltersOrder.AUTHENTICATION)
