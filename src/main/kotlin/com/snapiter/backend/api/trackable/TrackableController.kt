@@ -29,14 +29,14 @@ class TrackableController(
         summary = "Create a new trackable",
         description = "Register a new trackable."
     )
-    @ApiResponse(responseCode = "201", description = "Created")
+    @ApiResponse(responseCode = "200", description = "Created a new trackable")
     @ApiResponse(responseCode = "400", description = "Bad request")
     fun create(
         @RequestBody req: CreateTrackableRequest,
         @AuthenticationPrincipal principal: AppPrincipal,
-    ): Mono<ResponseEntity<Void>> {
+    ): Mono<ResponseEntity<Trackable>> {
         return trackableService.createTracker(req, principal.userId).map {
-            ResponseEntity.created(URI.create("/api/trackables/${it}")).build()
+            ResponseEntity.ok(it)
         }
     }
 

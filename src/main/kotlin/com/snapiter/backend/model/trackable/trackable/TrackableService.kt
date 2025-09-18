@@ -9,7 +9,7 @@ import java.util.UUID
 
 @Service
 class TrackableService ( private val trackableRepository: TrackableRepository ){
-    fun createTracker(req: CreateTrackableRequest, userId: UUID) : Mono<String> {
+    fun createTracker(req: CreateTrackableRequest, userId: UUID) : Mono<Trackable> {
         val entity = Trackable(
             trackableId = UUID.randomUUID().toString(),
             name = req.name,
@@ -20,9 +20,7 @@ class TrackableService ( private val trackableRepository: TrackableRepository ){
             userId = userId
         )
 
-        return trackableRepository.save(entity).map { saved ->
-            saved.trackableId.toString()
-        }
+        return trackableRepository.save(entity)
     }
 
     fun getByTrackableId(trackableId: String): Mono<Trackable> =

@@ -47,7 +47,7 @@ class TrackableControllerTest {
     @Test
     fun `POST create returns 201 and saves entity with createdAt`() {
         val captor = argumentCaptor<CreateTrackableRequest>()
-        whenever(service.createTracker(any(),any())).thenReturn(Mono.just("trackableId"))
+        whenever(service.createTracker(any(),any())).thenReturn(Mono.just(trackable()))
 
         val body = """
             {
@@ -65,8 +65,7 @@ class TrackableControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
-            .expectStatus().isCreated
-            .expectHeader().valueMatches("Location", "/api/trackables/.*")
+            .expectStatus().isOk
 
         // Assert (repo interaction & saved entity)
         verify(service, times(1)).createTracker(captor.capture(), any())
