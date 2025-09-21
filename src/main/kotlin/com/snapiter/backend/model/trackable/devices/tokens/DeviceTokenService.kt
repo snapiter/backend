@@ -29,7 +29,7 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
 
         // If the device ID is set, that token is in use, do not revoke it.
         // Only revoke tokens that are unused.
-        return repo.findByTrackableIdAndDeviceIdNotNull(trackableId)
+        return repo.findByTrackableIdAndDeviceIdNull(trackableId)
             // Revoke all older
             .flatMap { existing ->
                 repo.save(existing.copy(revokedAt = now()))
