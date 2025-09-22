@@ -75,15 +75,20 @@ class RefreshTokenService(
         val hash = sha256(raw)
         val now = nowUtc()
 
+        val refreshGraceSeconds = 5L
+
         return repo.findByTokenHash(hash)
             .switchIfEmpty(Mono.error(UnauthorizedRefreshTokenException("invalid_refresh_token")))
             .flatMap { rt ->
-                if (rt.revokedAt != null) return@flatMap Mono.error(UnauthorizedRefreshTokenException("revoked_refresh_token"))
+                val withinGrace = rt.revokedAt?.plusSeconds(refreshGraceSeconds)?.isAfter(now) ?: false
+
+                if (rt.revokedAt != null && !withinGrace ) return@flatMap Mono.error(UnauthorizedRefreshTokenException("revoked_refresh_token"))
                 if (now.isAfter(rt.expiresAt)) return@flatMap Mono.error(UnauthorizedRefreshTokenException("expired_refresh_token"))
-                if (rt.replacedBy != null) return@flatMap Mono.error(UnauthorizedRefreshTokenException("reused_refresh_token"))
+                if (rt.replacedBy != null && !withinGrace) return@flatMap Mono.error(UnauthorizedRefreshTokenException("reused_refresh_token"))
 
                 // Load user
-                userRepo.findByUserId(rt.userId).switchIfEmpty(Mono.error(UnauthorizedRefreshTokenException("user_not_found")))
+                userRepo.findByUserId(rt.userId)
+                    .switchIfEmpty(Mono.error(UnauthorizedRefreshTokenException("user_not_found")))
                     .flatMap { user ->
                         val childRaw = newRawToken()
                         val childHash = sha256(childRaw)
