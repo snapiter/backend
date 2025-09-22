@@ -1,6 +1,7 @@
 package com.snapiter.backend.model.trackable.positionreport
 
 import com.snapiter.backend.api.trackable.PositionRequest
+import com.snapiter.backend.model.trackable.devices.Device
 import com.snapiter.backend.model.trackable.devices.DeviceRepository
 import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import org.springframework.http.HttpStatus
@@ -19,11 +20,24 @@ class PositionService(
     private val positionReportRepository: PositionReportRepository
 ) {
     fun report(trackableId: String, deviceId: String, position: PositionRequest): Mono<PositionReport> {
-        return ensureDevice(trackableId, deviceId).flatMap {
+        return ensureDevice(trackableId, deviceId).flatMap { device ->
             val ts = position.createdAt ?: OffsetDateTime.now()
-            val pr = PositionReport.createFromLatAndLong(trackableId, position.latitude, position.longitude, ts)
-            positionReportRepository.save(pr)
+
+            val pr = PositionReport.createFromLatAndLong(
+                trackableId,
+                position.latitude,
+                position.longitude,
+                ts
+            )
+
+            // update device and save both
+            device.lastReportedAt = ts.toLocalDateTime();
+
+            deviceRepository.save(device).then(
+                positionReportRepository.save(pr)
+            )
         }
+
     }
 
     fun positions(
@@ -54,8 +68,10 @@ class PositionService(
         }
     }
 
-    private fun ensureDevice(trackableId: String, deviceId: String): Mono<Unit> =
+    private fun ensureDevice(trackableId: String, deviceId: String): Mono<Device> =
         deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId)
-            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
-            .thenReturn(Unit)
+            .switchIfEmpty(
+                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable"))
+            )
+
 }

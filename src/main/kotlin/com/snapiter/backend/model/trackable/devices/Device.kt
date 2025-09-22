@@ -19,5 +19,5 @@ data class Device (
     val createdAt: LocalDateTime?,
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val lastReportedAt: LocalDateTime?,
+    var lastReportedAt: LocalDateTime?,
 )
