@@ -82,37 +82,6 @@ class MarkerController(
             .defaultIfEmpty(ResponseEntity.notFound().build())
     }
 
-    @PostMapping("", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Operation(
-        summary = "Upload the marker image",
-        description = "Upload the marker image."
-    )
-    fun createMarker(
-        @RequestBody fileParts: Flux<Part>,
-        @PathVariable trackableId: String
-    ): Mono<ResponseEntity<String>> {
-        val markerId = UUID.randomUUID()
-        return fileParts
-            .ofType(FilePart::class.java)
-            .flatMap { part ->
-                s3FileUpload.saveFile(markerId, "markers/", part, trackableId)
-            }
-            .collect(Collectors.toList())
-            .flatMap {
-                val head = s3FileUpload.getHeadObjectResponse(
-                    markerId.toString(),
-                    "markers/"
-                )
-                markerRepository.save(
-                    Marker.create(trackableId, markerId.toString(), head.contentLength(), head.contentType())
-                )
-            }
-            .flatMap {
-                val responseBody = "\"${markerId}\""  // Manually quote the UUID
-                Mono.just(ResponseEntity.ok(responseBody))
-            }
-    }
-
     @PostMapping("/image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @Operation(
         summary = "Upload the marker image",
@@ -144,8 +113,9 @@ class MarkerController(
                     s3FileUpload.saveFile(fileId, "images/", part, trackableId)
                 }
                 .then(
-                    Mono.fromCallable {
-                        val head = s3FileUpload.getHeadObjectResponse(fileId.toString(), "images/")
+                    Mono.fromFuture {
+                        s3FileUpload.getHeadObjectResponse(fileId.toString(), "images/")
+                    }.map { head ->
                         Marker.create(
                             trackableId,
                             fileId.toString(),

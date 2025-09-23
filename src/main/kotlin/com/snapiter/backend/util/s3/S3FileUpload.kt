@@ -22,13 +22,13 @@ class S3FileUpload(
     private val s3client: S3AsyncClient,
     private val s3config: S3ClientConfigurationProperties
 ) {
-    fun getHeadObjectResponse(fileName: String, dir: String): HeadObjectResponse {
+    fun getHeadObjectResponse(fileName: String, dir: String): CompletableFuture<HeadObjectResponse> {
         return s3client.headObject(
             HeadObjectRequest.builder()
                 .bucket(s3config.bucket)
                 .key(s3config.filesDir + dir + fileName)
                 .build()
-        ).get()
+        )
     }
     fun saveFile(fileName: UUID, dir: String, part: FilePart, trackableId: String): Mono<String> {
         // Gather metadata
