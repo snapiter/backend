@@ -22,6 +22,8 @@ class S3ClientConfiguration {
         s3props: S3ClientConfigurationProperties,
         credentialsProvider: AwsCredentialsProvider
     ): S3AsyncClient {
+        println(">>> Using S3 endpoint: ${s3props.endpoint}")
+
         val httpClient = NettyNioAsyncHttpClient.builder()
             .writeTimeout(Duration.ZERO)
             .maxConcurrency(64)
@@ -34,6 +36,7 @@ class S3ClientConfiguration {
             .region(s3props.region)
             .credentialsProvider(credentialsProvider)
             .serviceConfiguration(serviceConfiguration)
+            .forcePathStyle(s3props.forcePathStyle)
             .endpointOverride(URI.create(s3props.endpoint));
 
         return b.build();

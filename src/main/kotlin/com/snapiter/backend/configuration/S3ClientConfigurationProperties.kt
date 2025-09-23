@@ -8,6 +8,7 @@ data class S3ClientConfigurationProperties(
     val region: Region = Region.EU_WEST_1,
     val bucket: String = "test",
     val endpoint: String = "",
+    val forcePathStyle: Boolean = false,
     val accessKeyId: String = "",
     val secretAccessKey: String = "",
     val filesDir: String = "",
