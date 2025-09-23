@@ -3,7 +3,6 @@ package com.snapiter.backend.api.trackable
 import com.snapiter.backend.model.trackable.markers.Marker
 import com.snapiter.backend.model.trackable.markers.MarkerRepository
 import com.snapiter.backend.security.AppPrincipal
-import com.snapiter.backend.util.s3.FileResponseWrapperService
 import com.snapiter.backend.util.s3.S3FileUpload
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -31,8 +30,7 @@ import java.util.stream.Collectors
 @SecurityRequirement(name = "bearerAuth")
 class MarkerController(
     private val s3FileUpload: S3FileUpload,
-    private val markerRepository: MarkerRepository,
-    private val fileResponseWrapperService: FileResponseWrapperService
+    private val markerRepository: MarkerRepository
 ) {
     @PutMapping("{markerId}")
     @Operation(
