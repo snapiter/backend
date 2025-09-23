@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.http.codec.multipart.FormFieldPart
 import org.springframework.http.codec.multipart.Part
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -119,24 +120,52 @@ class MarkerController(
     )
     fun uploadImage(
         @PathVariable trackableId: String,
-        @RequestParam latitude: Double,
-        @RequestParam longitude: Double,
-        @RequestBody fileParts: Flux<Part>,
+        @RequestBody parts: Flux<Part>
     ): Mono<ResponseEntity<String>> {
         val fileId = UUID.randomUUID()
-        return fileParts
-            .ofType(FilePart::class.java)
-            .flatMap { part -> s3FileUpload.saveFile(fileId, "images/", part, trackableId) }
-            .collect(Collectors.toList())
-            .flatMap {
-                markerRepository.save(
-                    Marker.create(trackableId, fileId.toString(), latitude, longitude)
-                )
+
+        var latitude: Double? = null
+        var longitude: Double? = null
+
+        return parts.flatMap { part ->
+            println(">>> Received part: name=${part.name()}, type=${part.javaClass.simpleName}")
+
+            when (part) {
+                is FilePart -> {
+                    println(">>> Handling FilePart: ${part.filename()}")
+                    // Upload file to S3
+                    s3FileUpload.saveFile(fileId, "images/", part, trackableId)
+                }
+                is FormFieldPart -> {
+                    println(">>> Handling FormFieldPart: ${part.name()}=${part.value()}")
+                    when (part.name()) {
+                        "latitude" -> latitude = part.value().toDouble()
+                        "longitude" -> longitude = part.value().toDouble()
+                        else -> println(">>> Ignored form field: ${part.name()}")
+                    }
+                    Mono.empty()
+                }
+                else -> {
+                    println(">>> Unknown Part type: ${part.javaClass.name}")
+                    Mono.empty()
+                }
             }
-            .flatMap {
-                ResponseEntity.ok().body(fileId.toString()).toMono()
+        }
+            .then(
+                Mono.defer {
+                    println(">>> Saving marker with lat=$latitude, lon=$longitude, fileId=$fileId")
+                    markerRepository.save(
+                        Marker.create(trackableId, fileId.toString(), latitude!!, longitude!!)
+                    )
+                }
+            )
+            .map {
+                println(">>> Marker saved, returning response: fileId=$fileId")
+                ResponseEntity.ok(fileId.toString())
             }
     }
+
+
 }
 
 data class UpdateMarkerRequest(
