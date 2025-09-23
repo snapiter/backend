@@ -73,7 +73,8 @@ class SecurityConfig(
                     "/api/trackables/*/trips/*/positions",
                     "/api/trackables/*/trips/*/markers",
                     "/api/trackables/*/positions",
-                    "/api/trackables/host/**"
+                    "/api/trackables/host/**",
+                    "/api/cron/thumbnail"
                 ).permitAll()
                 it.pathMatchers(
                     "/api/auth/login/email/request",
