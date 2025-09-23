@@ -16,7 +16,7 @@ class ThumbnailCron(
             try {
                 thumbnailGeneratorService.create(
                     marker.markerId,
-                    "markers/100x100",
+                    "markers/",
                     marker.fileType,
                     100,
                     100
@@ -24,14 +24,14 @@ class ThumbnailCron(
 
                 thumbnailGeneratorService.create(
                     marker.markerId,
-                    "markers/500x500",
+                    "markers/",
                     marker.fileType,
                     500,
                     500
                 )
                 thumbnailGeneratorService.create(
                     marker.markerId,
-                    "markers/1000x1000",
+                    "markers/",
                     marker.fileType,
                     1000, 1000
                 )

@@ -21,9 +21,11 @@ class ThumbnailGeneratorService(
     private val thumbnailGenerator: ThumbnailGenerator
 ) {
     fun create(fileId: String,dir: String, fileType: String, width: Number, height: Number) {
+        println("Creating thumbnail for $fileId at ${width}x$height")
+
         try {
             putImage(
-                fileId,
+                fileId + "/" + width + "x" + height,
                 dir,
                 fileType,
                 thumbnailGenerator.createThumbnail(
@@ -36,6 +38,7 @@ class ThumbnailGeneratorService(
                 )
             )
         } catch (e: Throwable) {
+            println("Error" + e.message)
             if(e is software.amazon.awssdk.services.s3.model.NoSuchKeyException) {
                 throw e
             }
@@ -59,6 +62,8 @@ class ThumbnailGeneratorService(
 
 
     private fun putImage(fileId: String, dir: String, fileType: String, image: BufferedImage) {
+        println("put Image $fileId")
+
         val baos = ByteArrayOutputStream()
         ImageIO.write(image, "jpg", baos)
         val bytes = baos.toByteArray()
