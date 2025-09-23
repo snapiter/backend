@@ -124,46 +124,37 @@ class MarkerController(
     ): Mono<ResponseEntity<String>> {
         val fileId = UUID.randomUUID()
 
-        var latitude: Double? = null
-        var longitude: Double? = null
+        return parts.collectList().flatMap { allParts ->
+            println(">>> Received parts: ${allParts.map { it.name() }}")
 
-        return parts.flatMap { part ->
-            println(">>> Received part: name=${part.name()}, type=${part.javaClass.simpleName}")
+            val fields = allParts.filterIsInstance<FormFieldPart>()
+                .associate { it.name() to it.value() }
 
-            when (part) {
-                is FilePart -> {
-                    println(">>> Handling FilePart: ${part.filename()}")
-                    // Upload file to S3
+            val latitude = fields["latitude"]?.toDoubleOrNull()
+            val longitude = fields["longitude"]?.toDoubleOrNull()
+
+            println(">>> Extracted latitude=$latitude, longitude=$longitude")
+
+            val fileParts = allParts.filterIsInstance<FilePart>()
+
+            return@flatMap Flux.fromIterable(fileParts)
+                .flatMap { part ->
+                    println(">>> Uploading file: ${part.filename()}")
                     s3FileUpload.saveFile(fileId, "images/", part, trackableId)
                 }
-                is FormFieldPart -> {
-                    println(">>> Handling FormFieldPart: ${part.name()}=${part.value()}")
-                    when (part.name()) {
-                        "latitude" -> latitude = part.value().toDouble()
-                        "longitude" -> longitude = part.value().toDouble()
-                        else -> println(">>> Ignored form field: ${part.name()}")
-                    }
-                    Mono.empty()
-                }
-                else -> {
-                    println(">>> Unknown Part type: ${part.javaClass.name}")
-                    Mono.empty()
-                }
-            }
-        }
-            .then(
-                Mono.defer {
-                    println(">>> Saving marker with lat=$latitude, lon=$longitude, fileId=$fileId")
+                .then(
                     markerRepository.save(
                         Marker.create(trackableId, fileId.toString(), latitude!!, longitude!!)
                     )
+                )
+                .map {
+                    println(">>> Marker saved with lat=$latitude lon=$longitude fileId=$fileId")
+                    ResponseEntity.ok(fileId.toString())
                 }
-            )
-            .map {
-                println(">>> Marker saved, returning response: fileId=$fileId")
-                ResponseEntity.ok(fileId.toString())
-            }
+        }
     }
+
+
 
 
 }
