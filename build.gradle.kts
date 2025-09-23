@@ -47,7 +47,8 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
-
+	// Generate thumbnails
+	implementation("net.coobird:thumbnailator:0.4.20")
 
 
 	// For marker up and download to S3

@@ -110,7 +110,7 @@ class MarkerController(
 
             Flux.fromIterable(fileParts)
                 .flatMap { part ->
-                    s3FileUpload.saveFile(fileId, "images/", part, trackableId)
+                    s3FileUpload.saveFile(fileId, "markers/", part, trackableId)
                 }
                 .then(
                     Mono.fromFuture {
