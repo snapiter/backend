@@ -24,8 +24,8 @@ data class Marker (
     val createdAt: LocalDateTime?
 ) {
     companion object {
-        fun create(trackableId: String, markerId: String, latitude: Double, longitude: Double): Marker {
-            return Marker(null, trackableId, markerId, 0,"",latitude, longitude, "","",false, null)
+        fun create(trackableId: String, markerId: String, latitude: Double, longitude: Double, fileSize: Number, fileType: String): Marker {
+            return Marker(null, trackableId, markerId, fileSize, fileType, latitude, longitude, "","",false, null)
         }
         fun create(trackableId: String, markerId: String, fileSize: Number, fileType: String): Marker {
             return Marker(null, trackableId, markerId, fileSize, fileType, null, null,"","",false, null)

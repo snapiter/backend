@@ -125,34 +125,43 @@ class MarkerController(
         val fileId = UUID.randomUUID()
 
         return parts.collectList().flatMap { allParts ->
-            println(">>> Received parts: ${allParts.map { it.name() }}")
-
             val fields = allParts.filterIsInstance<FormFieldPart>()
                 .associate { it.name() to it.value() }
 
             val latitude = fields["latitude"]?.toDoubleOrNull()
             val longitude = fields["longitude"]?.toDoubleOrNull()
 
-            println(">>> Extracted latitude=$latitude, longitude=$longitude")
+            if (latitude == null || longitude == null) {
+                return@flatMap Mono.error<ResponseEntity<String>>(
+                    IllegalArgumentException("Latitude/Longitude missing in form-data")
+                )
+            }
 
             val fileParts = allParts.filterIsInstance<FilePart>()
 
-            return@flatMap Flux.fromIterable(fileParts)
+            Flux.fromIterable(fileParts)
                 .flatMap { part ->
-                    println(">>> Uploading file: ${part.filename()}")
                     s3FileUpload.saveFile(fileId, "images/", part, trackableId)
                 }
                 .then(
-                    markerRepository.save(
-                        Marker.create(trackableId, fileId.toString(), latitude!!, longitude!!)
-                    )
+                    Mono.fromCallable {
+                        val head = s3FileUpload.getHeadObjectResponse(fileId.toString(), "images/")
+                        Marker.create(
+                            trackableId,
+                            fileId.toString(),
+                            latitude,
+                            longitude,
+                            head.contentLength(),
+                            head.contentType()
+                        )
+                    }
                 )
-                .map {
-                    println(">>> Marker saved with lat=$latitude lon=$longitude fileId=$fileId")
-                    ResponseEntity.ok(fileId.toString())
-                }
+                .flatMap(markerRepository::save)
+                .map { ResponseEntity.ok(fileId.toString()) }
         }
     }
+
+
 
 
 
