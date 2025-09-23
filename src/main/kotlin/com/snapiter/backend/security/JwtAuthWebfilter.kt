@@ -34,7 +34,7 @@ class JwtAuthWebFilter(private val jwt: JwtService) : WebFilter {
                             response.statusCode = HttpStatus.UNAUTHORIZED
                             response.headers.add("Content-Type", "application/json")
 
-                            val errorBody = """{"error":"expired_token","message":"Token expired"}"""
+                            val errorBody = """{"error":"expired_jwt_token","message":"Token expired"}"""
                             val buffer = response.bufferFactory().wrap(errorBody.toByteArray())
                             response.writeWith(Mono.just(buffer))
                         }

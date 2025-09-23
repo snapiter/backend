@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import java.nio.ByteBuffer
-import java.security.Principal
 import java.time.LocalDateTime
 import java.util.*
 import java.util.stream.Collectors
@@ -28,7 +26,7 @@ import java.util.stream.Collectors
 @RestController
 @RequestMapping("/api/trackables/{trackableId}/markers")
 @Tag(name = "Markers", description = "Manage markers for a trackable entity")
-@PreAuthorize("hasRole('USER', 'DEVICE')")
+@PreAuthorize("hasAnyRole('USER', 'DEVICE')")
 @SecurityRequirement(name = "deviceToken")
 @SecurityRequirement(name = "bearerAuth")
 class MarkerController(
