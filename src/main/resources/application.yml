@@ -40,6 +40,6 @@ aws:
     bucket: ${BUCKET:fmv}
     region: ${AWS_REGION:eu-central-1}
     endpoint: ${AWS_END_POINT:http://127.0.0.1:9000}
-    accessKeyId: ${AWS_ACCESS_KEY:admin}
+    access-key-id: ${AWS_ACCESS_KEY:admin}
     secret-access-key: ${AWS_SECRET_KEY:password}
     force-path-style: ${AWS_FORCE_PATH_STYLE:true}
