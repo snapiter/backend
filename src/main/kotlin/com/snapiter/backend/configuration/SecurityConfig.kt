@@ -14,6 +14,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.http.HttpMethod
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsWebFilter
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
@@ -21,6 +22,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
+@EnableScheduling
 class SecurityConfig(
     private val jwtService: JwtService,
     private val deviceTokenService: DeviceTokenService,
