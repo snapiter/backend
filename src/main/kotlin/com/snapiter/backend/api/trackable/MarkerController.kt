@@ -26,9 +26,7 @@ import java.util.stream.Collectors
 @RestController
 @RequestMapping("/api/trackables/{trackableId}/markers")
 @Tag(name = "Markers", description = "Manage markers for a trackable entity")
-@PreAuthorize(
-    "(hasAnyRole('USER','DEVICE')) and @trackableAccessChecker.canAccess(#trackableId, authentication)"
-)
+@PreAuthorize("hasAnyRole('USER', 'DEVICE')")
 @SecurityRequirement(name = "deviceToken")
 @SecurityRequirement(name = "bearerAuth")
 class MarkerController(

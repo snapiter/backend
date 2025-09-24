@@ -5,6 +5,7 @@ import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import com.snapiter.backend.security.DeviceAuthWebFilter
 import com.snapiter.backend.security.JwtAuthWebFilter
 import com.snapiter.backend.security.JwtService
+import com.snapiter.backend.security.TrackableSecurityService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
@@ -18,6 +19,9 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsWebFilter
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
+import org.springframework.web.reactive.HandlerMapping
+
+import org.springframework.security.authorization.AuthorizationDecision
 
 @Configuration
 @EnableWebFluxSecurity
@@ -26,7 +30,8 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 class SecurityConfig(
     private val jwtService: JwtService,
     private val deviceTokenService: DeviceTokenService,
-    private val deviceRepository: DeviceRepository
+    private val deviceRepository: DeviceRepository,
+    private val trackableAccessChecker: TrackableSecurityService
 ) {
 
     @Bean
@@ -48,7 +53,12 @@ class SecurityConfig(
     @Bean
     fun deviceRegisterSecurityChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http
-            .securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/api/trackables/*/devices/register"))
+            .securityMatcher(
+                ServerWebExchangeMatchers.pathMatchers(
+                    HttpMethod.POST,
+                    "/api/trackables/*/devices/register"
+                )
+            )
             .csrf { it.disable() }
             .cors { it.disable() }
             .authorizeExchange { exchanges ->
@@ -56,6 +66,7 @@ class SecurityConfig(
             }
             .build()
     }
+
     @Bean
     fun apiSecurityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http
@@ -67,7 +78,8 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .authorizeExchange {
                 it.pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                it.pathMatchers(HttpMethod.GET,
+                it.pathMatchers(
+                    HttpMethod.GET,
                     "/api/trackables/*/trips",
                     "/api/trackables/*/trips/*",
                     "/api/trackables/*/trips/*/positions",
@@ -83,9 +95,24 @@ class SecurityConfig(
                     "/api/auth/logout",
                 ).permitAll()
 
+                it.pathMatchers("/api/trackables/{trackableId}/**")
+                    .access { authenticationMono, context ->
+                        val variables =
+                            context.exchange.attributes[HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE] as Map<String, String>
+                        val trackableId = variables["trackableId"]
+
+                        authenticationMono.flatMap { authentication ->
+                            trackableAccessChecker.canAccess(trackableId!!, authentication)
+                                .map { granted -> AuthorizationDecision(granted) }
+                        }
+                    }
+
                 it.pathMatchers("/api/**").authenticated()
             }
-            .addFilterAt(DeviceAuthWebFilter(deviceTokenService, deviceRepository), SecurityWebFiltersOrder.AUTHENTICATION)
+            .addFilterAt(
+                DeviceAuthWebFilter(deviceTokenService, deviceRepository),
+                SecurityWebFiltersOrder.AUTHENTICATION
+            )
             .addFilterAt(JwtAuthWebFilter(jwtService), SecurityWebFiltersOrder.AUTHENTICATION)
             .build()
     }
