@@ -22,6 +22,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 import org.springframework.web.reactive.HandlerMapping
 
 import org.springframework.security.authorization.AuthorizationDecision
+import reactor.core.publisher.Mono
 
 @Configuration
 @EnableWebFluxSecurity
@@ -97,15 +98,19 @@ class SecurityConfig(
 
                 it.pathMatchers("/api/trackables/{trackableId}/**")
                     .access { authenticationMono, context ->
-                        val variables =
-                            context.exchange.attributes[HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE] as Map<String, String>
-                        val trackableId = variables["trackableId"]
+                        val trackableId = context.variables["trackableId"]
 
                         authenticationMono.flatMap { authentication ->
-                            trackableAccessChecker.canAccess(trackableId!!, authentication)
-                                .map { granted -> AuthorizationDecision(granted) }
+                            if (trackableId == null) {
+                                // deny if we didn't get the variable
+                                Mono.just(AuthorizationDecision(false))
+                            } else {
+                                trackableAccessChecker.canAccess(trackableId as String, authentication)
+                                    .map { granted -> AuthorizationDecision(granted) }
+                            }
                         }
                     }
+
 
                 it.pathMatchers("/api/**").authenticated()
             }
