@@ -14,27 +14,16 @@ class ThumbnailCron(
     fun cron() {
         markerRepository.findAllByHasThumbnail(false).flatMap { marker ->
             try {
-                thumbnailGeneratorService.create(
-                    marker.markerId,
-                    "markers/",
-                    marker.fileType,
-                    100,
-                    100
-                )
+                ThumbnailSize.entries.forEach { size ->
+                    thumbnailGeneratorService.create(
+                        marker.markerId,
+                        "markers/",
+                        marker.fileType,
+                        size.width,
+                        size.height
+                    )
+                }
 
-                thumbnailGeneratorService.create(
-                    marker.markerId,
-                    "markers/",
-                    marker.fileType,
-                    500,
-                    500
-                )
-                thumbnailGeneratorService.create(
-                    marker.markerId,
-                    "markers/",
-                    marker.fileType,
-                    1000, 1000
-                )
                 markerRepository.save(marker.copy(hasThumbnail = true))
             } catch (e: Throwable) {
                 if (e is software.amazon.awssdk.services.s3.model.NoSuchKeyException) {

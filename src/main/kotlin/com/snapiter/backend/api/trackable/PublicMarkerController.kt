@@ -4,6 +4,7 @@ import com.snapiter.backend.model.trackable.markers.Marker
 import com.snapiter.backend.model.trackable.markers.MarkerRepository
 import com.snapiter.backend.model.trackable.trip.TripRepository
 import com.snapiter.backend.util.s3.FileResponseWrapperService
+import com.snapiter.backend.util.thumbnail.ThumbnailSize
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
@@ -73,24 +74,44 @@ class PublicMarkerController(
             .defaultIfEmpty(ResponseEntity.notFound().build())
     }
 
-    @GetMapping("/markers/{markerId}/thumbnail")
+    @GetMapping("/markers/{trackableId}/{markerId}/thumbnail/{size}")
     @ApiResponse(responseCode = "404", description = "Could not find image")
     fun thumbnailMarker(
         @PathVariable trackableId: String,
-        @PathVariable markerId: String
+        @PathVariable markerId: String,
+        @PathVariable size: String
     ): Mono<ResponseEntity<Flux<ByteBuffer>>> {
-        return markerRepository.findByMarkerIdAndTrackableId(markerId, trackableId).map {
-            fileResponseWrapperService.previewFile(
-                trackableId,
-                markerId,
-                it.fileType,
-                it.fileSize,
-                if (it.hasThumbnail) "markers/thumbnails/" else "markers/"
-            )
-        }.defaultIfEmpty(ResponseEntity.notFound().build())
+        val thumbnailSize = ThumbnailSize.fromValue(size)
+        if (thumbnailSize == null) {
+            return Mono.just(ResponseEntity.notFound().build())
+        }
+
+        return markerRepository.findByMarkerIdAndTrackableId(markerId, trackableId).flatMap { marker ->
+            if (!marker.hasThumbnail) {
+                Mono.just(ResponseEntity.notFound().build())
+            } else {
+                Mono.just(
+                    fileResponseWrapperService.previewFile(
+                        trackableId,
+                        markerId,
+                        marker.fileType,
+                        marker.fileSize,
+                        "markers/thumbnails/${markerId}/${size}"
+                    )
+                )
+            }
+        }.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
     }
 
-    @GetMapping("/markers/{markerId}/preview")
+
+
+
+    @GetMapping("/markers/{markerId}/image")
+    @Operation(
+        summary = "Get the full resolution image of a marker",
+        description = "Retrieves the full-size image associate. The image is returned in its original resolution and format."
+    )
+
     @ApiResponse(responseCode = "404", description = "Could not find image")
     fun previewMarker(
         @PathVariable trackableId: String,
@@ -102,7 +123,7 @@ class PublicMarkerController(
                 markerId,
                 it.fileType,
                 it.fileSize,
-                "markers/"
+                "markers/$markerId"
             )
         }.defaultIfEmpty(ResponseEntity.notFound().build())
     }
