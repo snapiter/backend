@@ -51,6 +51,7 @@ class SecurityConfig(
     }
 
     @Bean
+    // Specific BEAN for registering a device, at this point it does NOT have any token yet.
     fun deviceRegisterSecurityChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http
             .securityMatcher(

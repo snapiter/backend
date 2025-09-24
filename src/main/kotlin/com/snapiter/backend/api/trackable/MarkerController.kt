@@ -49,10 +49,10 @@ class MarkerController(
                 .flatMap { marker ->
                     markerRepository.save(
                         marker.copy(
-                            latitude = request.latitude,
-                            longitude = request.longitude,
-                            title = request.title.ifEmpty { marker.title },
-                            description = request.description.ifEmpty { marker.description },
+                            latitude = request.latitude ?: marker.latitude,
+                            longitude = request.longitude ?: marker.longitude,
+                            title = request.title?.takeIf { it.isNotEmpty() } ?: marker.title,
+                            description = request.description?.takeIf { it.isNotEmpty() } ?: marker.description,
                             createdAt = request.createdAt ?: marker.createdAt
                         )
                     ).map { ResponseEntity.ok(it) }
@@ -132,9 +132,9 @@ class MarkerController(
 }
 
 data class UpdateMarkerRequest(
-    val latitude: Double,
-    val longitude: Double,
-    val title: String,
-    val description: String,
+    val latitude: Double?,
+    val longitude: Double?,
+    val title: String?,
+    val description: String?,
     val createdAt: LocalDateTime?
 )
