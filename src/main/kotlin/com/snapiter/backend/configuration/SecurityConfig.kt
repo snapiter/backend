@@ -19,7 +19,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsWebFilter
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
-import org.springframework.web.reactive.HandlerMapping
 
 import org.springframework.security.authorization.AuthorizationDecision
 import reactor.core.publisher.Mono
@@ -90,6 +89,7 @@ class SecurityConfig(
                     "/api/trackables/host/**"
                 ).permitAll()
                 it.pathMatchers(
+                    HttpMethod.POST,
                     "/api/auth/login/email/request",
                     "/api/auth/login/email/consume",
                     "/api/auth/refresh",
