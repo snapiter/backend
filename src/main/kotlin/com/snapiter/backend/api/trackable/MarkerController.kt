@@ -26,7 +26,9 @@ import java.util.stream.Collectors
 @RestController
 @RequestMapping("/api/trackables/{trackableId}/markers")
 @Tag(name = "Markers", description = "Manage markers for a trackable entity")
-@PreAuthorize("hasAnyRole('USER', 'DEVICE')")
+@PreAuthorize(
+    "(hasAnyRole('USER','DEVICE')) and @trackableAccessChecker.canAccess(#trackableId, authentication)"
+)
 @SecurityRequirement(name = "deviceToken")
 @SecurityRequirement(name = "bearerAuth")
 class MarkerController(
@@ -43,8 +45,7 @@ class MarkerController(
     fun updateMarker(
         @PathVariable trackableId: String,
         @PathVariable markerId: String,
-        @RequestBody request: UpdateMarkerRequest,
-        @AuthenticationPrincipal p: AppPrincipal
+        @RequestBody request: UpdateMarkerRequest
     ): Mono<ResponseEntity<Marker>> {
             return markerRepository.findByMarkerIdAndTrackableId(markerId, trackableId)
                 .flatMap { marker ->

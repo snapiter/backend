@@ -3,7 +3,6 @@ package com.snapiter.backend.api.trackable
 import com.snapiter.backend.model.trackable.devices.Device
 import com.snapiter.backend.model.trackable.devices.DeviceService
 import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
-import com.snapiter.backend.model.trackable.devices.tokens.UnauthorizedTokenException
 import com.snapiter.backend.util.Qr
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
