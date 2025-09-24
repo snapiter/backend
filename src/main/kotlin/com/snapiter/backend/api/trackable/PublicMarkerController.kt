@@ -74,7 +74,7 @@ class PublicMarkerController(
             .defaultIfEmpty(ResponseEntity.notFound().build())
     }
 
-    @GetMapping("/markers/{trackableId}/{markerId}/thumbnail/{size}")
+    @GetMapping("/markers/{markerId}/thumbnail/{size}")
     @ApiResponse(responseCode = "404", description = "Could not find image")
     fun thumbnailMarker(
         @PathVariable trackableId: String,

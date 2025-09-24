@@ -130,12 +130,6 @@ class MarkerController(
                 .map { ResponseEntity.ok(fileId.toString()) }
         }
     }
-
-
-
-
-
-
 }
 
 data class UpdateMarkerRequest(
