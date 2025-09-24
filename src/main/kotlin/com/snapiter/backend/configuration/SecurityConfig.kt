@@ -72,7 +72,7 @@ class SecurityConfig(
                     "/api/trackables/*/trips/*",
                     "/api/trackables/*/trips/*/positions",
                     "/api/trackables/*/trips/*/markers",
-                    "/api/trackables/*/markers/*/*",
+                    "/api/trackables/*/markers/**",
                     "/api/trackables/*/positions",
                     "/api/trackables/host/**"
                 ).permitAll()
