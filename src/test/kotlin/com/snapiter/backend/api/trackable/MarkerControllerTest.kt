@@ -99,8 +99,8 @@ class MarkerControllerTest {
         val request = UpdateMarkerRequest(
             latitude = null,
             longitude = null,
-            title = "",
-            description = "",
+            title = null,
+            description = null,
             createdAt = null
         )
 
@@ -119,6 +119,35 @@ class MarkerControllerTest {
                         response.body?.latitude == marker.latitude &&
                         response.body?.longitude == marker.longitude &&
                         response.body?.createdAt == marker.createdAt
+            }
+            .verifyComplete()
+    }
+
+
+    @Test
+    fun `updateMarker should update empty string for title and description`() {
+        val request = UpdateMarkerRequest(
+            latitude = 0.0,
+            longitude = 0.0,
+            title = "",
+            description = "",
+            createdAt = null
+        )
+
+        whenever(markerRepository.findByMarkerIdAndTrackableId(marker.markerId, marker.trackableId))
+            .thenReturn(Mono.just(marker))
+        whenever(markerRepository.save(any()))
+            .thenAnswer { invocation -> Mono.just(invocation.arguments[0] as Marker) }
+
+        val result = controller.updateMarker(marker.trackableId, marker.markerId, request)
+
+        StepVerifier.create(result)
+            .expectNextMatches { response ->
+                response.statusCode == HttpStatus.OK &&
+                        response.body?.title == request.title &&
+                        response.body?.description == request.description &&
+                        response.body?.latitude == request.latitude &&
+                        response.body?.longitude == request.longitude
             }
             .verifyComplete()
     }

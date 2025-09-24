@@ -51,8 +51,8 @@ class MarkerController(
                         marker.copy(
                             latitude = request.latitude ?: marker.latitude,
                             longitude = request.longitude ?: marker.longitude,
-                            title = request.title?.takeIf { it.isNotEmpty() } ?: marker.title,
-                            description = request.description?.takeIf { it.isNotEmpty() } ?: marker.description,
+                            title = request.title ?: marker.title,
+                            description = request.description ?: marker.description,
                             createdAt = request.createdAt ?: marker.createdAt
                         )
                     ).map { ResponseEntity.ok(it) }
