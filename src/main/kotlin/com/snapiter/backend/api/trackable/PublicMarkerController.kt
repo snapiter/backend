@@ -55,7 +55,6 @@ class PublicMarkerController(
                         trackableId,
                         markerId,
                         marker.fileType,
-                        marker.fileSize,
                         "markers/thumbnails/${markerId}/${size}"
                     )
                 )
@@ -82,7 +81,6 @@ class PublicMarkerController(
                 trackableId,
                 markerId,
                 it.fileType,
-                it.fileSize,
                 "markers/$markerId"
             )
         }.defaultIfEmpty(ResponseEntity.notFound().build())

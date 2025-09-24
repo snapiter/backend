@@ -37,11 +37,9 @@ class FileResponseWrapperService (
         trackableId: String,
         markerId: String,
         fileType: String,
-        fileSize: Number,
         fileId: String
     ) = ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_TYPE, fileType)
-        .header(HttpHeaders.CONTENT_LENGTH, fileSize.toString())
         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$trackableId-$markerId." + getExtension(fileType) + "\"")
         .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
         .body(
