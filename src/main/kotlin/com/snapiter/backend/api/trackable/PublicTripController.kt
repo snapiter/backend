@@ -24,14 +24,14 @@ import java.time.LocalDateTime
 
 
 @RestController
-@RequestMapping("/api/trackables")
+@RequestMapping("/api/trackables/{trackableId}")
 @Tag(name = "Trackable Trips", description = "Endpoints for Trips")
 class PublicTripController(
     private val positionService: PositionService,
     private val markerRepository: MarkerRepository,
     private val tripRepository: TripRepository
 ) {
-    @GetMapping("/{trackableId}/trips")
+    @GetMapping("/trips")
     @Operation(
         summary = "List trips for a trackable",
         description = "Returns all trips belonging to the specified trackable."
@@ -47,7 +47,7 @@ class PublicTripController(
     }
 
 
-    @GetMapping("/{trackableId}/trips/{trip}")
+    @GetMapping("/trips/{trip}")
     @Operation(
         summary = "Get a specific trip by slug",
         description = "Returns a single trip by its slug for the given trackable."
@@ -73,7 +73,7 @@ class PublicTripController(
         return tripRepository.findBySlugAndTrackableId(trip, trackableId);
     }
 
-    @GetMapping("/{trackableId}/trips/{trip}/positions")
+    @GetMapping("/trips/{trip}/positions")
     @ApiResponse(
         responseCode = "200", description = "Return a list of positions for that trip",
         content = [Content(

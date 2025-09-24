@@ -25,7 +25,7 @@ import java.time.LocalDateTime
 
 
 @RestController
-@RequestMapping("/api/trackables")
+@RequestMapping("/api/trackables/{trackableId}")
 @Tag(name = "Trackable Trips", description = "Endpoints for Trips")
 @PreAuthorize("hasAnyRole('USER','DEVICE')")
 @SecurityRequirement(name = "bearerAuth")
@@ -33,7 +33,7 @@ import java.time.LocalDateTime
 class TripController(
     private val tripRepository: TripRepository
 ) {
-    @PostMapping("/{trackableId}/trips")
+    @PostMapping("/trips")
     @Operation(
         summary = "Create a trip for a trackable",
         description = "Creates a new trip under the specified trackable. Slug must be unique per trackable."
