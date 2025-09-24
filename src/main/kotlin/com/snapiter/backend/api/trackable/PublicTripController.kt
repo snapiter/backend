@@ -1,5 +1,7 @@
 package com.snapiter.backend.api.trackable
 
+import com.snapiter.backend.model.trackable.markers.Marker
+import com.snapiter.backend.model.trackable.markers.MarkerRepository
 import com.snapiter.backend.model.trackable.positionreport.PositionReport
 import com.snapiter.backend.model.trackable.positionreport.PositionService
 import com.snapiter.backend.model.trackable.trip.Trip
@@ -12,10 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+import java.time.LocalDateTime
 
 
 @RestController
@@ -23,6 +28,7 @@ import reactor.core.publisher.Mono
 @Tag(name = "Trackable Trips", description = "Endpoints for Trips")
 class PublicTripController(
     private val positionService: PositionService,
+    private val markerRepository: MarkerRepository,
     private val tripRepository: TripRepository
 ) {
     @GetMapping("/{trackableId}/trips")
@@ -95,5 +101,41 @@ class PublicTripController(
                     size
                 )
             }
+    }
+
+
+    @GetMapping("/trips/{trip}/markers")
+    @Operation(
+        summary = "Get all markers for a trip",
+        description = "Returns all markers for a specific trip by its slug for the given trackable."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Markers found",
+                content = [Content(array = ArraySchema(schema = Schema(implementation = Marker::class)))]
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Markers not found",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            )
+        ]
+    )
+    fun getMarkers(
+        @PathVariable trackableId: String,
+        @PathVariable trip: String,
+    ): Mono<ResponseEntity<Flux<Marker>>> {
+        return tripRepository.findBySlugAndTrackableId(trip, trackableId).map {
+            markerRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(
+                trackableId,
+                it.startDate,
+                it.endDate ?: LocalDateTime.now()
+            )
+        }.flatMap {
+            ResponseEntity.ok(it).toMono()
+        }
+            .defaultIfEmpty(ResponseEntity.ok(Flux.empty()))
     }
 }
