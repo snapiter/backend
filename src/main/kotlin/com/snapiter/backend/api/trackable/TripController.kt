@@ -83,6 +83,56 @@ class TripController(
             }
             .then(Mono.just(ResponseEntity.noContent().build()))
     }
+
+    @PutMapping("/trips/{tripId}")
+    @Operation(
+        summary = "Update a trip",
+        description = "Updates an existing trip. Fields set to null will be ignored (kept unchanged)."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "204", description = "Trip updated successfully, no content returned"
+            ),
+            ApiResponse(
+                responseCode = "400", description = "Validation error",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+            ApiResponse(
+                responseCode = "404", description = "Trip not found",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+            ApiResponse(
+                responseCode = "409", description = "Duplicate slug for this trackable",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+            ApiResponse(
+                responseCode = "500", description = "Server error",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+        ]
+    )
+    fun updateTrip(
+        @PathVariable trackableId: String,
+        @PathVariable tripId: String,
+        @RequestBody body: UpdateTripRequest
+    ): Mono<ResponseEntity<Void>> {
+        return tripRepository.findBySlugAndTrackableId(tripId, trackableId)
+            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
+            .flatMap { existing ->
+                val updated = existing.copy(
+                    title = body.title ?: existing.title,
+                    description = body.description ?: existing.description,
+                    slug = body.slug ?: existing.slug,
+                    startDate = body.startDate ?: existing.startDate,
+                    endDate = body.endDate ?: existing.endDate,
+                    positionType = body.positionType ?: existing.positionType,
+                    color = body.color?.let { if (it.startsWith("#")) it else "#$it" } ?: existing.color,
+                    animationSpeed = body.animationSpeed ?: existing.animationSpeed,
+                )
+                tripRepository.save(updated).thenReturn(ResponseEntity.noContent().build<Void>())
+            }
+    }
 }
 
 
@@ -108,4 +158,29 @@ data class CreateTripRequest(
     val color: String = "#648192",
 
     val animationSpeed: Long = 10_000
+)
+
+data class UpdateTripRequest(
+    @field:Size(max = 200)
+    val title: String? = null,
+
+    @field:Size(max = 2000)
+    val description: String? = null,
+
+    @field:Pattern(regexp = "^[a-z0-9-]+$")
+    val slug: String? = null,
+
+    // ISO strings; we store UTC
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
+    val startDate: LocalDateTime? = null,
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
+    val endDate: LocalDateTime? = null,
+
+    val positionType: PositionType? = null,
+
+    @field:Pattern(regexp = "^#?[A-Fa-f0-9]{6}$")
+    val color: String? = null,
+
+    val animationSpeed: Long? = null
 )

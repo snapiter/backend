@@ -19,7 +19,7 @@ interface PositionReportRepository : ReactiveCrudRepository<PositionReport, Long
             "AND created_at BETWEEN :fromDate AND :untilDate " +
             "ORDER BY created_at DESC OFFSET :offset LIMIT :limit"
     )
-    fun findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(trackableId: String, fromDate: LocalDateTime, untilDate: LocalDateTime, offset: Int, limit: Int): Flux<PositionReport>
+    fun findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(trackableId: String, fromDateggit : LocalDateTime, untilDate: LocalDateTime, offset: Int, limit: Int): Flux<PositionReport>
 
     @Query("SELECT MAX(id) as id, MAX(trackable_id) as trackable_id, DATE_TRUNC('hour', created_at) AS hour, AVG(latitude) AS latitude, AVG(longitude) as longitude, MAX(created_at) as created_at FROM position_report " +
             "WHERE trackable_id = :trackableId GROUP BY DATE_TRUNC('hour', created_at) " +

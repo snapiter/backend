@@ -6,6 +6,7 @@ import com.snapiter.backend.model.trackable.trip.TripRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -16,7 +17,6 @@ import reactor.test.StepVerifier
 import java.time.LocalDateTime
 
 class TripControllerTest {
-
     private val tripRepository: TripRepository = mock()
     private val controller = TripController(tripRepository)
 
@@ -98,4 +98,99 @@ class TripControllerTest {
             }
             .verify()
     }
+    @Test
+    fun `updateTrip should update all fields`() {
+        val existingTrip = trip.copy(
+            id = 42L,
+            trackableId = "track-123",
+            slug = "old-slug",
+            title = "Old title",
+            description = "Old description",
+            startDate = LocalDateTime.of(2020, 1, 1, 0, 0),
+            endDate = LocalDateTime.of(2020, 2, 1, 0, 0),
+            positionType = PositionType.HOURLY,
+            color = "#abcdef",
+            animationSpeed = 5000
+        )
+
+        val request = UpdateTripRequest(
+            title = "New title",
+            description = "New description",
+            slug = "new-slug",
+            startDate = LocalDateTime.of(2030, 1, 1, 0, 0),
+            endDate = LocalDateTime.of(2030, 2, 1, 0, 0),
+            positionType = PositionType.ALL,
+            color = "123456", // no # in input → should get prefixed
+            animationSpeed = 9999L
+        )
+
+        whenever(tripRepository.findBySlugAndTrackableId(eq("42"), eq("track-123")))
+            .thenReturn(Mono.just(existingTrip))
+
+        val captor = argumentCaptor<Trip>()
+        whenever(tripRepository.save(captor.capture()))
+            .thenAnswer { Mono.just(captor.firstValue) }
+
+        val result = controller.updateTrip("track-123", "42", request)
+
+        StepVerifier.create(result)
+            .consumeNextWith { response ->
+                assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            }
+            .verifyComplete()
+
+        val saved = captor.firstValue
+        assertThat(saved.title).isEqualTo("New title")
+        assertThat(saved.description).isEqualTo("New description")
+        assertThat(saved.slug).isEqualTo("new-slug")
+        assertThat(saved.startDate).isEqualTo(LocalDateTime.of(2030, 1, 1, 0, 0))
+        assertThat(saved.endDate).isEqualTo(LocalDateTime.of(2030, 2, 1, 0, 0))
+        assertThat(saved.positionType).isEqualTo(PositionType.ALL)
+        assertThat(saved.color).isEqualTo("#123456")
+        assertThat(saved.animationSpeed).isEqualTo(9999L)
+
+        // unchanged
+        assertThat(saved.id).isEqualTo(existingTrip.id)
+        assertThat(saved.trackableId).isEqualTo(existingTrip.trackableId)
+        assertThat(saved.createdAt).isEqualTo(existingTrip.createdAt)
+    }
+
+    @Test
+    fun `updateTrip should keep all fields unchanged when request has no values`() {
+        val existingTrip = trip.copy(
+            id = 43L,
+            trackableId = "track-123",
+            slug = "unchanged-slug",
+            title = "Unchanged title",
+            description = "Unchanged description",
+            startDate = LocalDateTime.of(2020, 3, 1, 0, 0),
+            endDate = LocalDateTime.of(2020, 4, 1, 0, 0),
+            positionType = PositionType.ALL,
+            color = "#abcdef",
+            animationSpeed = 1234
+        )
+
+        val request = UpdateTripRequest() 
+
+        whenever(tripRepository.findBySlugAndTrackableId(eq("43"), eq("track-123")))
+            .thenReturn(Mono.just(existingTrip))
+
+        val captor = argumentCaptor<Trip>()
+        whenever(tripRepository.save(captor.capture()))
+            .thenAnswer { Mono.just(captor.firstValue) }
+
+        val result = controller.updateTrip("track-123", "43", request)
+
+        StepVerifier.create(result)
+            .consumeNextWith { response ->
+                assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            }
+            .verifyComplete()
+
+        val saved = captor.firstValue
+        // all fields must stay identical
+        assertThat(saved).usingRecursiveComparison().isEqualTo(existingTrip)
+    }
+
+
 }
