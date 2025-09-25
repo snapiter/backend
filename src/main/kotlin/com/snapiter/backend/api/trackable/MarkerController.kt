@@ -109,11 +109,11 @@ class MarkerController(
 
             Flux.fromIterable(fileParts)
                 .flatMap { part ->
-                    s3FileUpload.saveFile(fileId, "markers/", part, trackableId)
+                    s3FileUpload.saveFile(fileId, part, trackableId)
                 }
                 .then(
                     Mono.fromFuture {
-                        s3FileUpload.getHeadObjectResponse(fileId.toString(), "images/")
+                        s3FileUpload.getHeadObjectResponse(fileId.toString())
                     }.map { head ->
                         Marker.create(
                             trackableId,

@@ -20,17 +20,16 @@ class ThumbnailGeneratorService(
     private val s3config: S3ClientConfigurationProperties,
     private val thumbnailGenerator: ThumbnailGenerator
 ) {
-    fun create(fileId: String,dir: String, fileType: String, width: Number, height: Number) {
+    fun create(fileId: String, fileType: String, width: Number, height: Number) {
         println("Creating thumbnail for $fileId at ${width}x$height")
 
         try {
             putImage(
                 fileId + "/" + width + "x" + height,
-                dir,
                 fileType,
                 thumbnailGenerator.createThumbnail(
                     getS3ImageAsInputStream(
-                        s3config.filesDir + dir + fileId
+                        s3config.filesDir +  fileId
                     ),
                     fileType,
                     width,
@@ -38,7 +37,6 @@ class ThumbnailGeneratorService(
                 )
             )
         } catch (e: Throwable) {
-            println("Error" + e.message)
             if(e is software.amazon.awssdk.services.s3.model.NoSuchKeyException) {
                 throw e
             }
@@ -61,7 +59,7 @@ class ThumbnailGeneratorService(
     }
 
 
-    private fun putImage(fileId: String, dir: String, fileType: String, image: BufferedImage) {
+    private fun putImage(fileId: String,  fileType: String, image: BufferedImage) {
         println("put Image $fileId")
 
         val baos = ByteArrayOutputStream()
@@ -70,7 +68,7 @@ class ThumbnailGeneratorService(
         val key = "thumbnails/$fileId"
         val objectRequest = PutObjectRequest.builder()
             .bucket(s3config.bucket)
-            .key(s3config.filesDir + dir + key)
+            .key(s3config.filesDir + key)
             .contentType(fileType)
             .build()
 

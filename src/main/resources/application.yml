@@ -43,3 +43,4 @@ aws:
     access-key-id: ${AWS_ACCESS_KEY:admin}
     secret-access-key: ${AWS_SECRET_KEY:password}
     force-path-style: ${AWS_FORCE_PATH_STYLE:true}
+    files-dir: "markers/"

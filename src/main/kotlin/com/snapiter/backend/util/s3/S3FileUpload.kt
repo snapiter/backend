@@ -22,21 +22,21 @@ class S3FileUpload(
     private val s3client: S3AsyncClient,
     private val s3config: S3ClientConfigurationProperties
 ) {
-    fun getHeadObjectResponse(fileName: String, dir: String): CompletableFuture<HeadObjectResponse> {
+    fun getHeadObjectResponse(fileName: String): CompletableFuture<HeadObjectResponse> {
         return s3client.headObject(
             HeadObjectRequest.builder()
                 .bucket(s3config.bucket)
-                .key(s3config.filesDir + dir + fileName)
+                .key(s3config.filesDir +  fileName)
                 .build()
         )
     }
-    fun saveFile(fileName: UUID, dir: String, part: FilePart, trackableId: String): Mono<String> {
+    fun saveFile(fileName: UUID, part: FilePart, trackableId: String): Mono<String> {
         // Gather metadata
         val metadata: MutableMap<String, String?> = HashMap()
         var filename = part.filename()
 
         metadata["filename"] = "$filename"
-        metadata["vesselid"] = "$trackableId"
+        metadata["trackableid"] = "$trackableId"
         var mt: MediaType? = part.headers().contentType
         if (mt == null) {
             mt = MediaType.APPLICATION_OCTET_STREAM
@@ -47,7 +47,7 @@ class S3FileUpload(
             .createMultipartUpload(
                 CreateMultipartUploadRequest.builder()
                     .contentType(mt.toString())
-                    .key(s3config.filesDir + dir + fileName.toString())
+                    .key(s3config.filesDir  + fileName.toString())
                     .metadata(metadata)
                     .bucket(s3config.bucket)
                     .build()
@@ -76,7 +76,7 @@ class S3FileUpload(
                 concatBuffers(it)
             }
             .flatMap {
-                uploadPart(uploadState, dir, it)
+                uploadPart(uploadState, it)
             }
             .onBackpressureBuffer()
             .reduce(uploadState) { state: UploadState, completedPart: CompletedPart ->
@@ -84,7 +84,7 @@ class S3FileUpload(
                 state
             }
             .flatMap {
-                completeUpload(it, dir)
+                completeUpload(it)
             }
             .map {
                 checkResult(it)
@@ -112,12 +112,12 @@ class S3FileUpload(
      * @param buffer
      * @return
      */
-    private fun uploadPart(uploadState: UploadState, dir: String, buffer: ByteBuffer): Mono<CompletedPart> {
+    private fun uploadPart(uploadState: UploadState, buffer: ByteBuffer): Mono<CompletedPart> {
         val partNumber = ++uploadState.partCounter
         val request: CompletableFuture<UploadPartResponse> = s3client.uploadPart(
             UploadPartRequest.builder()
                 .bucket(uploadState.bucket)
-                .key(s3config.filesDir + dir + uploadState.filekey)
+                .key(s3config.filesDir + uploadState.filekey)
                 .partNumber(partNumber)
                 .uploadId(uploadState.uploadId)
                 .contentLength(buffer.capacity().toLong())
@@ -135,7 +135,7 @@ class S3FileUpload(
             }
     }
 
-    private fun completeUpload(state: UploadState, dir: String): Mono<CompleteMultipartUploadResponse> {
+    private fun completeUpload(state: UploadState): Mono<CompleteMultipartUploadResponse> {
         val multipartUpload = CompletedMultipartUpload.builder()
             .parts(state.completedParts.values)
             .build()
@@ -145,7 +145,7 @@ class S3FileUpload(
                     .bucket(state.bucket)
                     .uploadId(state.uploadId)
                     .multipartUpload(multipartUpload)
-                    .key(s3config.filesDir + dir + state.filekey)
+                    .key(s3config.filesDir + state.filekey)
                     .build()
             )
         )

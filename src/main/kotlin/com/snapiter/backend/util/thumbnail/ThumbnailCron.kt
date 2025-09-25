@@ -17,7 +17,6 @@ class ThumbnailCron(
                 ThumbnailSize.entries.forEach { size ->
                     thumbnailGeneratorService.create(
                         marker.markerId,
-                        "markers/",
                         marker.fileType,
                         size.width,
                         size.height
