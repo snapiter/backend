@@ -37,7 +37,7 @@ class S3FileUpload(
                 .build()
         )
     }
-    fun saveFile(fileName: UUID, part: FilePart, trackableId: String): Mono<UploadState> {
+    fun saveFile(fileName: UUID, part: FilePart, trackableId: String): Mono<FileUploadResult> {
         // Gather metadata
         val metadata: MutableMap<String, String?> = HashMap()
         var filename = part.filename()
@@ -75,7 +75,7 @@ class S3FileUpload(
             }
             .bufferUntil{ buffer: DataBuffer ->
                 uploadState.buffered += buffer.readableByteCount()
-                uploadState.totalBytes += buffer.readableByteCount().toLong()
+                uploadState.contentLength += buffer.readableByteCount().toLong()
                 if (uploadState.buffered >= s3config.multipartMinPartSize) {
                     uploadState.buffered = 0
                     true
@@ -99,7 +99,11 @@ class S3FileUpload(
             }
             .map {
                 checkResult(it)
-                uploadState
+                FileUploadResult(
+                    filekey = uploadState.filekey,
+                    contentLength = uploadState.contentLength,
+                    contentType = uploadState.contentType
+                )
             }
     }
 
@@ -183,8 +187,15 @@ class S3FileUpload(
         var partCounter = 0
         var completedParts: MutableMap<Int, CompletedPart> = HashMap()
         var buffered = 0
-        var totalBytes: Long = 0
+        var contentLength: Long = 0
     }
+
+    data class FileUploadResult(
+        val filekey: String,
+        val contentLength: Long,
+        val contentType: String
+    )
+
 
     class UploadFailedException(response: SdkResponse) : RuntimeException() {
         private var statusCode = 0

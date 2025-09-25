@@ -110,13 +110,13 @@ class MarkerController(
                 .flatMap { part -> s3FileUpload.saveFile(fileId, part, trackableId) }
                 .last()
                 .map { uploadState ->
-                    uploadState.totalBytes
+                    uploadState.contentLength
                     Marker.create(
                         trackableId,
-                        fileId,
+                        fileId.toString(),
                         latitude,
                         longitude,
-                        uploadState.totalBytes,
+                        uploadState.contentLength,
                         uploadState.contentType
                     )
                 }
