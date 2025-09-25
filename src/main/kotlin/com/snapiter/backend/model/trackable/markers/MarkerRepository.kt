@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 interface MarkerRepository : ReactiveCrudRepository<Marker, Long> {
     @Query("SELECT * FROM markers WHERE trackable_id = :trackableId " +
             "AND created_at BETWEEN :fromDate AND :untilDate " +
-            "ORDER BY created_at"
+            "ORDER BY created_at DESC"
     )
     fun findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(trackableId: String, fromDate: LocalDateTime, untilDate: LocalDateTime): Flux<Marker>
 

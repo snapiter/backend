@@ -136,6 +136,6 @@ class PublicTripController(
         }.flatMap {
             ResponseEntity.ok(it).toMono()
         }
-            .defaultIfEmpty(ResponseEntity.ok(Flux.empty()))
+        .defaultIfEmpty(ResponseEntity.ok(Flux.empty()))
     }
 }
