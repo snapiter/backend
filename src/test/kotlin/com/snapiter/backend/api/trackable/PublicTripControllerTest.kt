@@ -6,7 +6,6 @@ import com.snapiter.backend.model.trackable.positionreport.PositionService
 import com.snapiter.backend.model.trackable.trip.PositionType
 import com.snapiter.backend.model.trackable.trip.Trip
 import com.snapiter.backend.model.trackable.trip.TripRepository
-import com.snapiter.backend.util.s3.FileResponseWrapperService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
