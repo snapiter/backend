@@ -106,25 +106,23 @@ class MarkerController(
             }
 
             val fileParts = allParts.filterIsInstance<FilePart>()
-
             Flux.fromIterable(fileParts)
-                .flatMap { part ->
-                    s3FileUpload.saveFile(fileId, part, trackableId)
-                }
-                .then(
+                .flatMap { part -> s3FileUpload.saveFile(fileId, part, trackableId) }
+                .last()
+                .flatMap { savedKey ->
                     Mono.fromFuture {
-                        s3FileUpload.getHeadObjectResponse(fileId.toString())
+                        s3FileUpload.getHeadObjectResponse(savedKey)
                     }.map { head ->
                         Marker.create(
                             trackableId,
-                            fileId.toString(),
+                            savedKey,
                             latitude,
                             longitude,
                             head.contentLength(),
                             head.contentType()
                         )
                     }
-                )
+                }
                 .flatMap(markerRepository::save)
                 .map { ResponseEntity.ok(fileId.toString()) }
         }

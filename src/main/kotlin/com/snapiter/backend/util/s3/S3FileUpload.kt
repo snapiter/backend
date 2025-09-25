@@ -15,6 +15,8 @@ import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import com.snapiter.backend.configuration.S3ClientConfigurationProperties
+import reactor.util.retry.Retry
+import java.time.Duration
 
 @Service
 @EnableConfigurationProperties(S3ClientConfigurationProperties::class)
@@ -22,7 +24,12 @@ class S3FileUpload(
     private val s3client: S3AsyncClient,
     private val s3config: S3ClientConfigurationProperties
 ) {
-    fun getHeadObjectResponse(fileName: String): CompletableFuture<HeadObjectResponse> {
+    fun getHeadObjectResponse(fileName: String, retries: Int = 3): Mono<HeadObjectResponse> {
+        return Mono.fromFuture { headObjectResponse(fileName) }
+            .retryWhen(Retry.backoff(retries.toLong(), Duration.ofMillis(200)))
+    }
+
+    private fun headObjectResponse(fileName: String): CompletableFuture<HeadObjectResponse> {
         return s3client.headObject(
             HeadObjectRequest.builder()
                 .bucket(s3config.bucket)
