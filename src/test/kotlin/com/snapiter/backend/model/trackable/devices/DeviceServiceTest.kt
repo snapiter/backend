@@ -49,6 +49,10 @@ class DeviceServiceTest {
                 Mono.just(d.copy(id = 1L))
             }
 
+        Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId))).thenReturn(
+            Mono.empty()
+        )
+
         Mockito.`when`(deviceTokenService.assignDeviceToToken(any(), eq(deviceId))).thenReturn(
             Mono.empty()
         )
@@ -85,6 +89,57 @@ class DeviceServiceTest {
         assertEquals(deviceId, sent.deviceId)
         assertNotNull(sent.createdAt)
         assertEquals(sent.createdAt, sent.lastReportedAt)
+    }
+    @Test
+    fun `createDevice deletes existing device before saving new one`() {
+        val trackableId = "track-123"
+        val deviceId = "dev-abc"
+        val name = "Name"
+
+        val existing = Device(
+            id = 99L,
+            trackableId = trackableId,
+            deviceId = deviceId,
+            name = "OldName",
+            createdAt = LocalDateTime.now().minusDays(1),
+            lastReportedAt = LocalDateTime.now().minusDays(1)
+        )
+
+        val captor: ArgumentCaptor<Device> = ArgumentCaptor.forClass(Device::class.java)
+
+        Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId)))
+            .thenReturn(Mono.just(existing))
+
+        Mockito.`when`(deviceRepository.delete(existing)).thenReturn(Mono.empty())
+
+        Mockito.`when`(deviceRepository.save(captor.capture()))
+            .thenAnswer { invocation ->
+                val d = invocation.arguments[0] as Device
+                Mono.just(d.copy(id = 1L))
+            }
+
+        Mockito.`when`(deviceTokenService.assignDeviceToToken(any(), eq(deviceId)))
+            .thenReturn(Mono.empty())
+
+        val result = deviceService.createDevice(deviceToken(trackableId), deviceId, name)
+
+        StepVerifier.create(result)
+            .assertNext { saved ->
+                assertEquals(1L, saved.id)
+                assertEquals(trackableId, saved.trackableId)
+                assertEquals(deviceId, saved.deviceId)
+                assertEquals(name, saved.name)
+            }
+            .verifyComplete()
+
+        // Verify deletion happened
+        verify(deviceRepository).delete(existing)
+
+        // Verify we still saved the new one
+        val sent = captor.value
+        assertEquals(null, sent.id)
+        assertEquals(trackableId, sent.trackableId)
+        assertEquals(deviceId, sent.deviceId)
     }
 
     @Test

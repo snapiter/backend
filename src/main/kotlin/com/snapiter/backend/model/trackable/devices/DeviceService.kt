@@ -13,6 +13,7 @@ class DeviceService(
     private val deviceTokenService: DeviceTokenService
 ) {
     fun createDevice(deviceToken: DeviceToken, deviceId: String, name: String): Mono<Device> {
+
         val now = LocalDateTime.now()
         val device = Device(
             id = null,
@@ -22,7 +23,12 @@ class DeviceService(
             lastReportedAt = now,
             name = name
         )
-        return deviceTokenService.assignDeviceToToken(deviceToken, deviceId)
+
+        return deviceRepository.findByDeviceIdAndTrackableId(deviceId, deviceToken.trackableId)
+            .flatMap { existing ->
+                deviceRepository.delete(existing) // remove old if exists
+            }
+            .then(deviceTokenService.assignDeviceToToken(deviceToken, deviceId))
             .then(deviceRepository.save(device))
     }
 
