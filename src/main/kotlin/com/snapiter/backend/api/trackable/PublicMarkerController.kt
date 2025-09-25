@@ -53,9 +53,8 @@ class PublicMarkerController(
                 Mono.just(
                     fileResponseWrapperService.previewFile(
                         trackableId,
-                        markerId,
+                        "thumbnails/${markerId}/${size}",
                         marker.fileType,
-                        "markers/thumbnails/${markerId}/${size}"
                     )
                 )
             }

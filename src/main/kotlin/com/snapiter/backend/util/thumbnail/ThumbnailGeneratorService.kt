@@ -25,7 +25,7 @@ class ThumbnailGeneratorService(
 
         try {
             putImage(
-                fileId + "/" + width + "x" + height,
+                "thumbnails/" + fileId + "/" + width + "x" + height,
                 fileType,
                 thumbnailGenerator.createThumbnail(
                     getS3ImageAsInputStream(
@@ -65,10 +65,9 @@ class ThumbnailGeneratorService(
         val baos = ByteArrayOutputStream()
         ImageIO.write(image, "jpg", baos)
         val bytes = baos.toByteArray()
-        val key = "thumbnails/$fileId"
         val objectRequest = PutObjectRequest.builder()
             .bucket(s3config.bucket)
-            .key(s3config.filesDir + key)
+            .key(s3config.filesDir + fileId)
             .contentType(fileType)
             .build()
 
