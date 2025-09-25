@@ -3,13 +3,9 @@ package com.snapiter.backend.model.trackable.positionreport
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 interface PositionReportRepository : ReactiveCrudRepository<PositionReport, Long> {
-    @Query("SELECT * FROM position_report WHERE trackable_id = :trackableId ORDER BY created_at DESC LIMIT 1")
-    fun findLatestByTrackableId(trackableId: String): Mono<PositionReport>
-
     @Query("SELECT * FROM position_report WHERE trackable_id = :trackableId " +
             "ORDER BY created_at DESC OFFSET :offset LIMIT :limit")
     fun findAllByTrackableId(trackableId: String, offset: Int, limit: Int): Flux<PositionReport>
