@@ -37,7 +37,7 @@ class S3FileUpload(
                 .build()
         )
     }
-    fun saveFile(fileName: UUID, part: FilePart, trackableId: String): Mono<String> {
+    fun saveFile(fileName: UUID, part: FilePart, trackableId: String): Mono<UploadState> {
         // Gather metadata
         val metadata: MutableMap<String, String?> = HashMap()
         var filename = part.filename()
@@ -60,9 +60,12 @@ class S3FileUpload(
                     .build()
             )
 
-        // This variable will hold the upload state that we must keep
-        // around until all uploads complete
-        val uploadState = UploadState(s3config.bucket, fileName.toString())
+        val uploadState = UploadState(
+            s3config.bucket,
+            fileName.toString(),
+            mt.toString()
+        )
+
         return Mono
             .fromFuture(uploadRequest)
             .flatMapMany {
@@ -72,6 +75,7 @@ class S3FileUpload(
             }
             .bufferUntil{ buffer: DataBuffer ->
                 uploadState.buffered += buffer.readableByteCount()
+                uploadState.totalBytes += buffer.readableByteCount().toLong()
                 if (uploadState.buffered >= s3config.multipartMinPartSize) {
                     uploadState.buffered = 0
                     true
@@ -95,7 +99,7 @@ class S3FileUpload(
             }
             .map {
                 checkResult(it)
-                uploadState.filekey
+                uploadState
             }
     }
 
@@ -174,11 +178,12 @@ class S3FileUpload(
     /**
      * Holds upload state during a multipart upload
      */
-    internal class UploadState(val bucket: String, val filekey: String) {
+    internal class UploadState(val bucket: String, val filekey: String, val contentType: String) {
         var uploadId: String? = null
         var partCounter = 0
         var completedParts: MutableMap<Int, CompletedPart> = HashMap()
         var buffered = 0
+        var totalBytes: Long = 0
     }
 
     class UploadFailedException(response: SdkResponse) : RuntimeException() {

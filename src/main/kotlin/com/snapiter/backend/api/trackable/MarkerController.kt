@@ -109,19 +109,16 @@ class MarkerController(
             Flux.fromIterable(fileParts)
                 .flatMap { part -> s3FileUpload.saveFile(fileId, part, trackableId) }
                 .last()
-                .flatMap { savedKey ->
-                    Mono.fromFuture {
-                        s3FileUpload.getHeadObjectResponse(savedKey)
-                    }.map { head ->
-                        Marker.create(
-                            trackableId,
-                            savedKey,
-                            latitude,
-                            longitude,
-                            head.contentLength(),
-                            head.contentType()
-                        )
-                    }
+                .map { uploadState ->
+                    uploadState.totalBytes
+                    Marker.create(
+                        trackableId,
+                        fileId,
+                        latitude,
+                        longitude,
+                        uploadState.totalBytes,
+                        uploadState.contentType
+                    )
                 }
                 .flatMap(markerRepository::save)
                 .map { ResponseEntity.ok(fileId.toString()) }
