@@ -8,11 +8,6 @@ import java.time.LocalDateTime
 
 interface MarkerRepository : ReactiveCrudRepository<Marker, Long> {
     @Query("SELECT * FROM markers WHERE trackable_id = :trackableId " +
-            "ORDER BY created_at DESC OFFSET :offset LIMIT :limit")
-    fun findAllByTrackableId(trackableId: String, offset: Int, limit: Int): Flux<Marker>
-
-
-    @Query("SELECT * FROM markers WHERE trackable_id = :trackableId " +
             "AND created_at BETWEEN :fromDate AND :untilDate " +
             "ORDER BY created_at"
     )
@@ -20,9 +15,7 @@ interface MarkerRepository : ReactiveCrudRepository<Marker, Long> {
 
 
     fun findByMarkerIdAndTrackableId(markerId: String, trackableId: String): Mono<Marker>
-    fun deleteByMarkerIdAndTrackableId(markerId: String, trackableId: String): Mono<Long>
 
     fun findAllByHasThumbnail(hasThumbnail: Boolean): Flux<Marker>
-
 }
 

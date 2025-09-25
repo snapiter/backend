@@ -45,7 +45,6 @@ class PublicMarkerController(
         if (thumbnailSize == null) {
             return Mono.just(ResponseEntity.notFound().build())
         }
-
         return markerRepository.findByMarkerIdAndTrackableId(markerId, trackableId).flatMap { marker ->
             if (!marker.hasThumbnail) {
                 Mono.just(ResponseEntity.notFound().build())
