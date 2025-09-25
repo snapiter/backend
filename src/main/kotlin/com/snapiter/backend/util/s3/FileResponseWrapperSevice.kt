@@ -35,12 +35,11 @@ class FileResponseWrapperService (
 
     fun previewFile(
         trackableId: String,
-        markerId: String,
-        fileType: String,
-        fileId: String
+        fileId: String,
+        fileType: String
     ) = ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_TYPE, fileType)
-        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$trackableId-$markerId." + getExtension(fileType) + "\"")
+        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$trackableId-$fileId." + getExtension(fileType) + "\"")
         .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
         .body(
             s3FileDownload.downloadFileAsFlux(fileId)

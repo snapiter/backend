@@ -62,9 +62,6 @@ class PublicMarkerController(
         }.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
     }
 
-
-
-
     @GetMapping("/markers/{markerId}/image")
     @Operation(
         summary = "Get the full resolution image of a marker",
@@ -80,8 +77,7 @@ class PublicMarkerController(
             fileResponseWrapperService.previewFile(
                 trackableId,
                 markerId,
-                it.fileType,
-                "markers/$markerId"
+                it.fileType
             )
         }.defaultIfEmpty(ResponseEntity.notFound().build())
     }
