@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import com.snapiter.backend.configuration.S3ClientConfigurationProperties
+import org.springframework.http.MediaTypeFactory
 import reactor.util.retry.Retry
 import java.time.Duration
 
@@ -44,10 +45,11 @@ class S3FileUpload(
 
         metadata["filename"] = "$filename"
         metadata["trackableid"] = "$trackableId"
-        var mt: MediaType? = part.headers().contentType
-        if (mt == null) {
-            mt = MediaType.APPLICATION_OCTET_STREAM
-        }
+
+        val mt = part.headers().contentType
+            ?.takeIf { it.type != "image" || it.subtype != "*" } // not just image/*
+            ?: MediaTypeFactory.getMediaType(part.filename()).orElse(MediaType.APPLICATION_OCTET_STREAM)
+
 
         // Create multipart upload request
         val uploadRequest: CompletableFuture<CreateMultipartUploadResponse> = s3client
