@@ -170,7 +170,7 @@ class TripControllerTest {
             animationSpeed = 1234
         )
 
-        val request = UpdateTripRequest() 
+        val request = UpdateTripRequest()
 
         whenever(tripRepository.findBySlugAndTrackableId(eq("43"), eq("track-123")))
             .thenReturn(Mono.just(existingTrip))

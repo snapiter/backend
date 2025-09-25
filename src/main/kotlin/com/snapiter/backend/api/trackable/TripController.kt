@@ -84,7 +84,7 @@ class TripController(
             .then(Mono.just(ResponseEntity.noContent().build()))
     }
 
-    @PutMapping("/trips/{tripId}")
+    @PutMapping("/trips/{trip}")
     @Operation(
         summary = "Update a trip",
         description = "Updates an existing trip. Fields set to null will be ignored (kept unchanged)."
@@ -114,10 +114,10 @@ class TripController(
     )
     fun updateTrip(
         @PathVariable trackableId: String,
-        @PathVariable tripId: String,
+        @PathVariable trip: String,
         @RequestBody body: UpdateTripRequest
     ): Mono<ResponseEntity<Void>> {
-        return tripRepository.findBySlugAndTrackableId(tripId, trackableId)
+        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
             .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
             .flatMap { existing ->
                 val updated = existing.copy(
