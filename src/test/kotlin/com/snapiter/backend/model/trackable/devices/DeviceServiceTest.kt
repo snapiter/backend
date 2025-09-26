@@ -14,7 +14,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import kotlin.test.assertEquals
@@ -57,7 +58,7 @@ class DeviceServiceTest {
             Mono.empty()
         )
 
-        val before = LocalDateTime.now().minusSeconds(2)
+        val before = Instant.now().minus(Duration.ofSeconds(2))
 
         val result = deviceService.createDevice(deviceToken(trackableId), deviceId, name)
 
@@ -74,7 +75,7 @@ class DeviceServiceTest {
                 assertNotNull(lastReportedAt, "lastReportedAt should not be null")
                 assertEquals(createdAt, lastReportedAt, "createdAt and lastReportedAt should be equal")
 
-                val after = LocalDateTime.now().plusSeconds(2)
+                val after = Instant.now().plus(Duration.ofSeconds(2))
                 assertTrue(
                     createdAt.isAfter(before) && createdAt.isBefore(after),
                     "createdAt should be close to now, but was $createdAt"
@@ -101,8 +102,8 @@ class DeviceServiceTest {
             trackableId = trackableId,
             deviceId = deviceId,
             name = "OldName",
-            createdAt = LocalDateTime.now().minusDays(1),
-            lastReportedAt = LocalDateTime.now().minusDays(1)
+            createdAt = Instant.now().minus(Duration.ofDays(1)),
+            lastReportedAt = Instant.now().minus(Duration.ofDays(1))
         )
 
         val captor: ArgumentCaptor<Device> = ArgumentCaptor.forClass(Device::class.java)
@@ -150,8 +151,8 @@ class DeviceServiceTest {
             id = 42L,
             trackableId = trackableId,
             deviceId = deviceId,
-            createdAt = LocalDateTime.now().minusDays(1),
-            lastReportedAt = LocalDateTime.now(),
+            createdAt = Instant.now().minus(Duration.ofDays(1)),
+            lastReportedAt = Instant.now(),
             name = "NAME"
         )
 
@@ -175,8 +176,8 @@ class DeviceServiceTest {
             id = 7L,
             trackableId = trackableId,
             deviceId = deviceId,
-            createdAt = LocalDateTime.now().minusDays(2),
-            lastReportedAt = LocalDateTime.now(),
+            createdAt = Instant.now().minus(Duration.ofDays(2)),
+            lastReportedAt = Instant.now(),
             name = "NAME"
         )
 

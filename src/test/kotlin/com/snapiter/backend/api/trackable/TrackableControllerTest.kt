@@ -22,7 +22,8 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.Duration
 import com.snapiter.backend.security.TrackableSecurityService
 import org.mockito.kotlin.eq
 import java.util.UUID
@@ -106,7 +107,7 @@ class TrackableControllerTest {
         title = "SnapIter",
         hostName = "snapiter.eu",
         icon = "📍",
-        createdAt = LocalDateTime.parse("2025-09-10T12:34:56"),
+        createdAt = Instant.parse("2025-09-10T12:34:56Z"),
         userId = UUID.randomUUID()
     )
 
@@ -137,7 +138,7 @@ class TrackableControllerTest {
             title = "SnapIter",
             hostName = "snapiter.eu",
             icon = "📍",
-            createdAt = LocalDateTime.parse("2025-09-10T12:34:56"),
+            createdAt = Instant.parse("2025-09-10T12:34:56Z"),
             userId = UUID.randomUUID()
 
         )

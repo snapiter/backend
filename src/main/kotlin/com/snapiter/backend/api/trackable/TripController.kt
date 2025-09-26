@@ -1,6 +1,5 @@
 package com.snapiter.backend.api.trackable
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.snapiter.backend.model.trackable.trip.PositionType
 import com.snapiter.backend.model.trackable.trip.Trip
 import com.snapiter.backend.model.trackable.trip.TripRepository
@@ -21,7 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
+import java.time.Instant
 
 
 @RestController
@@ -75,7 +74,7 @@ class TripController(
                     description = body.description,
                     slug = body.slug,
                     positionType = body.positionType,
-                    createdAt = LocalDateTime.now(),
+                    createdAt = Instant.now(),
                     color = if (body.color.startsWith("#")) body.color else "#${body.color}",
                     animationSpeed = body.animationSpeed
                 )
@@ -146,12 +145,9 @@ data class CreateTripRequest(
     @field:NotBlank @field:Pattern(regexp = "^[a-z0-9-]+$")
     val slug: String,
 
-    // ISO strings; we store UTC
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val startDate: LocalDateTime,
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val endDate: LocalDateTime? = null,
+    // ISO strings in UTC format (e.g., "2025-01-15T10:30:00Z")
+    val startDate: Instant,
+    val endDate: Instant? = null,
 
     val positionType: PositionType = PositionType.HOURLY,
     @field:Pattern(regexp = "^#?[A-Fa-f0-9]{6}$")
@@ -170,12 +166,9 @@ data class UpdateTripRequest(
     @field:Pattern(regexp = "^[a-z0-9-]+$")
     val slug: String? = null,
 
-    // ISO strings; we store UTC
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val startDate: LocalDateTime? = null,
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val endDate: LocalDateTime? = null,
+    // ISO strings in UTC format (e.g., "2025-01-15T10:30:00Z")
+    val startDate: Instant? = null,
+    val endDate: Instant? = null,
 
     val positionType: PositionType? = null,
 

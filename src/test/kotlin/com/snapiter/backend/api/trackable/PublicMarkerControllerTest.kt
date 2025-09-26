@@ -12,7 +12,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.Duration
 
 class PublicMarkerControllerTest {
 
@@ -34,7 +35,7 @@ class PublicMarkerControllerTest {
             longitude = 2.0,
             title = "Test",
             description = "Desc",
-            createdAt = LocalDateTime.now()
+            createdAt = Instant.now()
         )
 
         whenever(markerRepository.findByMarkerIdAndTrackableId(eq("marker-123"), eq("track-456")))

@@ -4,7 +4,7 @@ import com.snapiter.backend.api.trackable.CreateTrackableRequest
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 @Service
@@ -16,7 +16,7 @@ class TrackableService ( private val trackableRepository: TrackableRepository ){
             title = req.title ?: "",
             hostName = req.hostName ?: "",
             icon = req.icon ?: "",
-            createdAt = LocalDateTime.now(),
+            createdAt = Instant.now(),
             userId = userId
         )
 

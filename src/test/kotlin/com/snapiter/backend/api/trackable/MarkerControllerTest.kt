@@ -10,7 +10,8 @@ import org.mockito.kotlin.whenever
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.Duration
 
 class MarkerControllerTest {
 
@@ -30,7 +31,7 @@ class MarkerControllerTest {
         longitude = 2.0,
         title = "Test",
         description = "Desc",
-        createdAt = LocalDateTime.now()
+        createdAt = Instant.now()
     );
 
     @Test

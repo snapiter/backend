@@ -16,7 +16,8 @@ import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.Duration
 
 class PublicTripControllerTest {
 
@@ -31,13 +32,13 @@ class PublicTripControllerTest {
         val trip = Trip(
             id = 1L,
             trackableId = "trackableId123",
-            startDate = LocalDateTime.of(2019, 4, 12, 2, 1, 0),
-            endDate = LocalDateTime.of(2020, 4, 12, 2, 1, 0),
+            startDate = Instant.parse("2019-04-12T02:01:00Z"),
+            endDate = Instant.parse("2020-04-12T02:01:00Z"),
             title = "Test Trip",
             description = "Test Description",
             slug = "tripSlug",
             positionType = PositionType.HOURLY,
-            createdAt = LocalDateTime.now(),
+            createdAt = Instant.now(),
             color = "#648192",
             animationSpeed = 10000
         )
@@ -64,7 +65,7 @@ class PublicTripControllerTest {
                     longitude = 2.0,
                     title = "Test",
                     description = "Desc",
-                    createdAt = LocalDateTime.now()
+                    createdAt = Instant.now()
                 )
             )
         )
@@ -82,17 +83,17 @@ class PublicTripControllerTest {
 
     @Test
     fun `should fallback trip end date to NOW when endDate is null`() {
-        val startDate = LocalDateTime.of(2019, 4, 12, 2, 1, 0)
+        val startDate = Instant.parse("2019-04-12T02:01:00Z")
         val trip = Trip(
             id = 2L,
             trackableId = "trackableId123",
-            startDate = LocalDateTime.of(2019, 4, 12, 2, 1, 0),
+            startDate = Instant.parse("2019-04-12T02:01:00Z"),
             endDate = null,
             title = "Trip Without End",
             description = null,
             slug = "tripSlug",
             positionType = PositionType.HOURLY,
-            createdAt = LocalDateTime.now(),
+            createdAt = Instant.now(),
             color = "#648192",
             animationSpeed = 10000
         )
@@ -120,7 +121,7 @@ class PublicTripControllerTest {
                     longitude = 4.0,
                     title = "Another",
                     description = "Another desc",
-                    createdAt = LocalDateTime.now()
+                    createdAt = Instant.now()
                 )
             )
         )

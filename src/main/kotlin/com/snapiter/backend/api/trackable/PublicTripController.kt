@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import java.time.LocalDateTime
+import java.time.Instant
 
 
 @RestController
@@ -131,7 +131,7 @@ class PublicTripController(
             markerRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(
                 trackableId,
                 it.startDate,
-                it.endDate ?: LocalDateTime.now()
+                it.endDate ?: Instant.now()
             )
         }.flatMap {
             ResponseEntity.ok(it).toMono()

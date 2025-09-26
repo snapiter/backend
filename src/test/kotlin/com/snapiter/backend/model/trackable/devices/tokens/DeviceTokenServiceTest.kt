@@ -11,6 +11,7 @@ import org.mockito.kotlin.eq
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
+import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import kotlin.test.assertNotNull
@@ -36,7 +37,7 @@ class DeviceTokenServiceTest {
             trackableId = trackableId,
             deviceId = null,
             tokenHash = "oldhash",
-            createdAt = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1),
+            createdAt = OffsetDateTime.now(ZoneOffset.UTC).minus(Duration.ofDays(1)),
             revokedAt = null
         )
 

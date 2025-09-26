@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 import java.util.stream.Collectors
 
@@ -131,5 +131,5 @@ data class UpdateMarkerRequest(
     val longitude: Double?,
     val title: String?,
     val description: String?,
-    val createdAt: LocalDateTime?
+    val createdAt: Instant?
 )

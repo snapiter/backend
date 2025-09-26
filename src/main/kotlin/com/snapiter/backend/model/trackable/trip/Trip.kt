@@ -1,11 +1,10 @@
 package com.snapiter.backend.model.trackable.trip
 
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Table("trip")
 data class Trip (
@@ -13,17 +12,14 @@ data class Trip (
     @Id var id: Long?,
     val trackableId: String,
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val startDate: LocalDateTime,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val endDate: LocalDateTime?,
+    val startDate: Instant,
+    val endDate: Instant?,
     val title: String,
     val description: String?,
     val slug: String,
     val positionType: PositionType = PositionType.HOURLY,
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val createdAt: LocalDateTime?,
+    val createdAt: Instant?,
     val color: String = "#648192",
     val animationSpeed: Number = 10000
 )

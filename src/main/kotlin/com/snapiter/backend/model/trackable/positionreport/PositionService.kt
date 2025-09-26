@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.OffsetDateTime
 import com.snapiter.backend.model.trackable.trip.PositionType
 import reactor.core.publisher.Flux
@@ -31,7 +31,7 @@ class PositionService(
             )
 
             // update device and save both
-            device.lastReportedAt = ts.toLocalDateTime();
+            device.lastReportedAt = ts.toInstant();
 
             deviceRepository.save(device).then(
                 positionReportRepository.save(pr)
@@ -43,8 +43,8 @@ class PositionService(
     fun positions(
         positionType: PositionType,
         trackableId: String,
-        fromDate: LocalDateTime?,
-        untilDate: LocalDateTime?,
+        fromDate: Instant?,
+        untilDate: Instant?,
         page: Int,
         size: Int
     ): Flux<PositionReport> {

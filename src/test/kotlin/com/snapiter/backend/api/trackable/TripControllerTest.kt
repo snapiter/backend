@@ -14,7 +14,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.Duration
 
 class TripControllerTest {
     private val tripRepository: TripRepository = mock()
@@ -23,13 +24,13 @@ class TripControllerTest {
     val trip = Trip(
         id = 2L,
         trackableId = "trackableId123",
-        startDate = LocalDateTime.of(2019, 4, 12, 2, 1, 0),
+        startDate = Instant.parse("2019-04-12T02:01:00Z"),
         endDate = null,
         title = "Trip Without End",
         description = null,
         slug = "tripSlug",
         positionType = PositionType.HOURLY,
-        createdAt = LocalDateTime.now(),
+        createdAt = Instant.now(),
         color = "#648192",
         animationSpeed = 10000
     )
@@ -38,8 +39,8 @@ class TripControllerTest {
     fun `should create and return no content when slug not found`() {
         // given
         val request = CreateTripRequest(
-            startDate = LocalDateTime.of(2025, 1, 1, 10, 0),
-            endDate = LocalDateTime.of(2025, 1, 2, 10, 0),
+            startDate = Instant.parse("2025-01-01T10:00:00Z"),
+            endDate = Instant.parse("2025-01-02T10:00:00Z"),
             title = "My Trip",
             description = "Trip description",
             slug = "my-trip",
@@ -53,7 +54,7 @@ class TripControllerTest {
         whenever(tripRepository.save(any()))
             .thenReturn(Mono.just(Trip(id = 2L, trackableId = "track-123", startDate = request.startDate,
                 endDate = request.endDate, title = request.title, description = request.description,
-                slug = request.slug, positionType = request.positionType, createdAt = LocalDateTime.now(),
+                slug = request.slug, positionType = request.positionType, createdAt = Instant.now(),
                 color = "#123456", animationSpeed = request.animationSpeed
             )))
 
@@ -72,8 +73,8 @@ class TripControllerTest {
     fun `createTrip should throw conflict when slug already exists`() {
         // given
         val request = CreateTripRequest(
-            startDate = LocalDateTime.now(),
-            endDate = LocalDateTime.now().plusDays(1),
+            startDate = Instant.now(),
+            endDate = Instant.now().plus(Duration.ofDays(1)),
             title = "Existing trip",
             description = "desc",
             slug = "existing",
@@ -106,8 +107,8 @@ class TripControllerTest {
             slug = "old-slug",
             title = "Old title",
             description = "Old description",
-            startDate = LocalDateTime.of(2020, 1, 1, 0, 0),
-            endDate = LocalDateTime.of(2020, 2, 1, 0, 0),
+            startDate = Instant.parse("2025-01-01T10:00:00Z"),
+            endDate = Instant.parse("2025-01-01T10:00:00Z"),
             positionType = PositionType.HOURLY,
             color = "#abcdef",
             animationSpeed = 5000
@@ -117,8 +118,8 @@ class TripControllerTest {
             title = "New title",
             description = "New description",
             slug = "new-slug",
-            startDate = LocalDateTime.of(2030, 1, 1, 0, 0),
-            endDate = LocalDateTime.of(2030, 2, 1, 0, 0),
+            startDate = Instant.parse("2025-01-01T10:00:00Z"),
+            endDate = Instant.parse("2025-01-01T10:00:00Z"),
             positionType = PositionType.ALL,
             color = "123456", // no # in input → should get prefixed
             animationSpeed = 9999L
@@ -143,8 +144,8 @@ class TripControllerTest {
         assertThat(saved.title).isEqualTo("New title")
         assertThat(saved.description).isEqualTo("New description")
         assertThat(saved.slug).isEqualTo("new-slug")
-        assertThat(saved.startDate).isEqualTo(LocalDateTime.of(2030, 1, 1, 0, 0))
-        assertThat(saved.endDate).isEqualTo(LocalDateTime.of(2030, 2, 1, 0, 0))
+        assertThat(saved.startDate).isEqualTo(Instant.parse("2025-01-01T10:00:00Z"))
+        assertThat(saved.endDate).isEqualTo(Instant.parse("2025-01-01T10:00:00Z"))
         assertThat(saved.positionType).isEqualTo(PositionType.ALL)
         assertThat(saved.color).isEqualTo("#123456")
         assertThat(saved.animationSpeed).isEqualTo(9999L)
@@ -163,8 +164,8 @@ class TripControllerTest {
             slug = "unchanged-slug",
             title = "Unchanged title",
             description = "Unchanged description",
-            startDate = LocalDateTime.of(2020, 3, 1, 0, 0),
-            endDate = LocalDateTime.of(2020, 4, 1, 0, 0),
+            startDate = Instant.parse("2025-01-01T10:00:00Z"),
+            endDate = Instant.parse("2025-01-01T10:00:00Z"),
             positionType = PositionType.ALL,
             color = "#abcdef",
             animationSpeed = 1234

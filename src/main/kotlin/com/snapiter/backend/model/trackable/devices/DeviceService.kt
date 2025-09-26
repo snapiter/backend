@@ -5,7 +5,7 @@ import com.snapiter.backend.model.trackable.devices.tokens.DeviceTokenService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Service
 class DeviceService(
@@ -14,7 +14,7 @@ class DeviceService(
 ) {
     fun createDevice(deviceToken: DeviceToken, deviceId: String, name: String): Mono<Device> {
 
-        val now = LocalDateTime.now()
+        val now = Instant.now()
         val device = Device(
             id = null,
             trackableId = deviceToken.trackableId,

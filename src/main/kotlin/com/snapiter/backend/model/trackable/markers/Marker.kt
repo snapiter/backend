@@ -1,10 +1,9 @@
 package com.snapiter.backend.model.trackable.markers
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Table("markers")
 data class Marker (
@@ -20,8 +19,7 @@ data class Marker (
     val description: String = "",
     val hasThumbnail: Boolean = false,
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "UTC")
-    val createdAt: LocalDateTime?
+    val createdAt: Instant?
 ) {
     companion object {
         fun create(trackableId: String, markerId: String, latitude: Double, longitude: Double, fileSize: Number, fileType: String): Marker {

@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
-import java.time.LocalDateTime
+import java.time.Instant
 
 @RestController
 @RequestMapping("/api/trackables")
@@ -30,9 +30,9 @@ class PublicPositionController(
         @PathVariable trackableId: String,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) fromDate:
-        LocalDateTime?,
+        Instant?,
         @RequestParam(required = false)
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) untilDate: LocalDateTime?,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) untilDate: Instant?,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "500") size: Int
     ): Flux<PositionReport> {
