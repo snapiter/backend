@@ -43,7 +43,7 @@ class PublicTripController(
     fun getTrips(
         @PathVariable trackableId: String
     ): Flux<Trip> {
-        return tripRepository.findAllByTrackableId(trackableId);
+        return tripRepository.findAllByTrackableIdOrderByEndDateDescNullsFirst(trackableId);
     }
 
 
