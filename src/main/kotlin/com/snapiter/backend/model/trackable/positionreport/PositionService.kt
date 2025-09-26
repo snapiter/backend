@@ -37,29 +37,35 @@ class PositionService(
     fun positions(
         positionType: PositionType,
         trackableId: String,
-        fromDate: Instant?,
+        fromDate: Instant,
         untilDate: Instant?,
         page: Int,
         size: Int
     ): Flux<PositionReport> {
         return trackableRepository.findByTrackableId(trackableId).flatMapMany { trackable ->
+            val effectiveUntilDate = untilDate ?: Instant.now()
+
             when (positionType) {
-                PositionType.HOURLY -> {
-                    if (fromDate != null && untilDate != null) {
-                        positionReportRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDescAndTruncatedByHour(trackableId, fromDate, untilDate, page, size)
-                    } else {
-                        positionReportRepository.findAllByTrackableIdAndTruncateByHour(trackableId, page, size)
-                    }
-                }
-                PositionType.ALL -> {
-                    if (fromDate != null && untilDate != null) {
-                        positionReportRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(trackableId, fromDate, untilDate, page, size)
-                    } else {
-                        positionReportRepository.findAllByTrackableId(trackableId, page, size)
-                    }
-                }
+                PositionType.HOURLY ->
+                    positionReportRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDescAndTruncatedByHour(
+                        trackableId,
+                        fromDate,
+                        effectiveUntilDate, 
+                        page,
+                        size
+                    )
+
+                PositionType.ALL ->
+                    positionReportRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(
+                        trackableId,
+                        fromDate,
+                        effectiveUntilDate,
+                        page,
+                        size
+                    )
             }
         }
+
     }
 
     private fun ensureDevice(trackableId: String, deviceId: String): Mono<Device> =

@@ -29,8 +29,7 @@ class PublicPositionController(
     fun getPositions(
         @PathVariable trackableId: String,
         @RequestParam(required = false)
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) fromDate:
-        Instant?,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) fromDate: Instant,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) untilDate: Instant?,
         @RequestParam(defaultValue = "0") page: Int,

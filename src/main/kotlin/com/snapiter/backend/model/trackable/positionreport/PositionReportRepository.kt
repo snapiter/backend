@@ -6,15 +6,6 @@ import reactor.core.publisher.Flux
 import java.time.Instant
 
 interface PositionReportRepository : ReactiveCrudRepository<PositionReport, Long> {
-    @Query("SELECT * FROM position_report WHERE trackable_id = :trackableId " +
-            "ORDER BY created_at DESC OFFSET :offset LIMIT :limit")
-    fun findAllByTrackableId(trackableId: String, offset: Int, limit: Int): Flux<PositionReport>
-
-    @Query("SELECT MAX(id) as id, MAX(trackable_id) as trackable_id, DATE_TRUNC('hour', created_at) AS hour, AVG(latitude) AS latitude, AVG(longitude) as longitude, MAX(created_at) as created_at FROM position_report WHERE trackable_id = :trackableId GROUP BY DATE_TRUNC('hour', created_at) " +
-            "ORDER BY hour DESC OFFSET :offset LIMIT :limit",
-    )
-    fun findAllByTrackableIdAndTruncateByHour(trackableId: String, offset: Int, limit: Int): Flux<PositionReport>
-
     @Query("SELECT id, trackable_id ,latitude,longitude, created_at FROM position_report WHERE trackable_id = :trackableId " +
             "AND created_at BETWEEN :fromDate AND :untilDate " +
             "ORDER BY created_at DESC OFFSET :offset LIMIT :limit"
