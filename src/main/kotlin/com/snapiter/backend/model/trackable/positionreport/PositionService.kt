@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.Instant
-import java.time.OffsetDateTime
 import com.snapiter.backend.model.trackable.trip.PositionType
 import reactor.core.publisher.Flux
 
@@ -21,7 +20,7 @@ class PositionService(
 ) {
     fun report(trackableId: String, deviceId: String, position: PositionRequest): Mono<PositionReport> {
         return ensureDevice(trackableId, deviceId).flatMap { device ->
-            val ts = position.createdAt ?: OffsetDateTime.now()
+            val ts = position.createdAt ?: Instant.now()
 
             val pr = PositionReport.createFromLatAndLong(
                 trackableId,
@@ -31,7 +30,7 @@ class PositionService(
             )
 
             // update device and save both
-            device.lastReportedAt = ts.toInstant();
+            device.lastReportedAt = ts;
 
             deviceRepository.save(device).then(
                 positionReportRepository.save(pr)

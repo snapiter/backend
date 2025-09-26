@@ -17,8 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
+import java.time.Instant
 
 @RestController
 @RequestMapping("/api/trackables")
@@ -63,6 +62,6 @@ data class PositionRequest(
     @field:DecimalMax(value = "180.0", message = "longitude must be <= 180")
     val longitude: Double,
 
-    // Optional client timestamp; if null, server time is used
-    val createdAt: OffsetDateTime? = null
+    // Optional client timestamp in UTC format (e.g., "2025-01-15T10:30:00Z"); if null, server time is used
+    val createdAt: Instant? = null
 )

@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import java.time.OffsetDateTime
+import java.time.Instant
 
 @WebFluxTest(controllers = [PositionController::class])
 @Import(TestSecurityConfig::class)
@@ -86,7 +86,7 @@ class PositionControllerTest {
     fun `POST uses client createdAt when provided`() {
         val trackableId = "t-123"
         val deviceId = "d-456"
-        val clientTs = OffsetDateTime.parse("2025-09-12T09:00:00Z")
+        val clientTs = Instant.parse("2025-09-12T09:00:00Z")
 
         val reqCaptor = argumentCaptor<PositionRequest>()
 

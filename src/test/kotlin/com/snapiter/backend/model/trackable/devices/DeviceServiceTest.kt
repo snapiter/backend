@@ -217,6 +217,6 @@ class DeviceServiceTest {
 
 
     private fun deviceToken(trackableId: String): DeviceToken {
-        return DeviceToken(null, trackableId, null,"token", OffsetDateTime.now(ZoneOffset.UTC), null)
+        return DeviceToken(null, trackableId, null,"token", Instant.now(), null)
     }
 }

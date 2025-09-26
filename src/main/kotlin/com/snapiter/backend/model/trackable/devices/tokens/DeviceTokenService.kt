@@ -4,14 +4,13 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.time.Instant
 import java.util.Base64
 
 @Service
 class DeviceTokenService(private val repo: DeviceTokenRepository) {
     private val rnd = SecureRandom()
-    private fun now() = OffsetDateTime.now(ZoneOffset.UTC)
+    private fun now() = Instant.now()
 
     private fun newRaw(): String {
         val b = ByteArray(32); rnd.nextBytes(b)

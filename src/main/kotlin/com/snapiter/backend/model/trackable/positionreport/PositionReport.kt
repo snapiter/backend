@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
-import java.time.OffsetDateTime
 
 @Table("position_report")
 data class PositionReport (
@@ -20,8 +19,8 @@ data class PositionReport (
         fun createFromLatAndLong(trackableId: String, latitude: Double, longitude: Double): PositionReport {
             return PositionReport(null, trackableId, latitude, longitude, null)
         }
-        fun createFromLatAndLong(trackableId: String, latitude: Double, longitude: Double, createdAt: OffsetDateTime): PositionReport {
-            return PositionReport(null, trackableId, latitude, longitude, createdAt.toInstant())
+        fun createFromLatAndLong(trackableId: String, latitude: Double, longitude: Double, createdAt: Instant): PositionReport {
+            return PositionReport(null, trackableId, latitude, longitude, createdAt)
         }
     }
 }
