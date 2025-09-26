@@ -21,14 +21,13 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
+import reactor.core.publisher.Flux
 import java.time.Instant
 
 @WebFluxTest(controllers = [PositionController::class])
 @Import(TestSecurityConfig::class)
 @AutoConfigureWebTestClient
 class PositionControllerTest {
-
     @Autowired lateinit var webTestClient: WebTestClient
 
     @MockitoBean
@@ -39,8 +38,8 @@ class PositionControllerTest {
         val trackableId = "t-123"
         val deviceId = "d-456"
 
-        whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
-            .thenReturn(Mono.empty())
+        whenever(positionService.report(eq(trackableId), eq(deviceId), any<List<PositionRequest>>()))
+            .thenReturn(Flux.empty())
 
         val body = """
           { "latitude": 52.37, "longitude": 4.90, "createdAt": "2025-09-12T09:00:00Z" }
@@ -65,7 +64,8 @@ class PositionControllerTest {
         val deviceId = "deviceId"
 
         whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
-            .thenReturn(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
+            .thenReturn(Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
+
 
         val body = """{ "latitude": 52.37, "longitude": 4.90 }"""
 
@@ -88,10 +88,10 @@ class PositionControllerTest {
         val deviceId = "d-456"
         val clientTs = Instant.parse("2025-09-12T09:00:00Z")
 
-        val reqCaptor = argumentCaptor<PositionRequest>()
+        val reqCaptor = argumentCaptor<List<PositionRequest>>()
 
         whenever(positionService.report(eq(trackableId), eq(deviceId), reqCaptor.capture()))
-            .thenReturn(Mono.empty())
+            .thenReturn(Flux.empty())
 
         val body = """
           { "latitude": 52.3702, "longitude": 4.8952, "createdAt": "$clientTs" }
@@ -106,6 +106,37 @@ class PositionControllerTest {
             .exchange()
             .expectStatus().isNoContent
 
-        assertEquals(clientTs, reqCaptor.firstValue.createdAt)
+        assertEquals(clientTs, reqCaptor.firstValue[0].createdAt)
+    }
+
+
+
+
+
+
+
+    @Test
+    fun `POST multiple positions returns 204 when device exists`() {
+        val trackableId = "t-123"
+        val deviceId = "d-456"
+
+        whenever(positionService.report(eq(trackableId), eq(deviceId), any<List<PositionRequest>>()))
+            .thenReturn(Flux.empty())
+
+        val body = """
+          [{ "latitude": 52.37, "longitude": 4.90, "createdAt": "2025-09-12T09:00:00Z" }]
+        """.trimIndent()
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables/$trackableId/$deviceId/positions")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isNoContent
+
+        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
+        verifyNoMoreInteractions(positionService)
     }
 }

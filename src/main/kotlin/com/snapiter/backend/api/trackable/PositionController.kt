@@ -27,7 +27,6 @@ import java.time.Instant
 class PositionController(
     private val positionService: PositionService
 ) {
-
     @PostMapping("/{trackableId}/{deviceId}/position")
     @Operation(
         summary = "Submit a position",
@@ -48,8 +47,30 @@ class PositionController(
         @PathVariable deviceId: String,
         @RequestBody request: PositionRequest
     ): Mono<ResponseEntity<Void>> {
-        return positionService.report(trackableId, deviceId, request)
-            .thenReturn(ResponseEntity.noContent().build())
+        return positionService.report(trackableId, deviceId, listOf(request))
+            .then(Mono.just(ResponseEntity.noContent().build()))
+    }
+
+    @PostMapping("/{trackableId}/{deviceId}/positions")
+    @Operation(
+        summary = "Submit multiple positions",
+        description = "Accepts a list of latitude/longitude updates for the given device. " +
+                "Each item may include an optional `createdAt` field; if omitted, the server timestamp will be used.",
+        security = [SecurityRequirement(name = "deviceToken")]
+    )
+    @ApiResponse(responseCode = "204", description = "Created")
+    @ApiResponse(responseCode = "400", description = "Bad request")
+    @ApiResponse(responseCode = "404", description = "Trackable/device not found")
+    @ApiResponse(responseCode = "409", description = "Duplicate/conflict")
+    @PreAuthorize("hasRole('DEVICE')")
+    @SecurityRequirement(name = "deviceToken")
+    fun createPositionReports(
+        @PathVariable trackableId: String,
+        @PathVariable deviceId: String,
+        @RequestBody requests: List<PositionRequest>
+    ): Mono<ResponseEntity<Void>> {
+        return positionService.report(trackableId, deviceId, requests)
+            .then(Mono.just(ResponseEntity.noContent().build()))
     }
 }
 

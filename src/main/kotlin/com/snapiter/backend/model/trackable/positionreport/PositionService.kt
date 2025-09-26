@@ -18,26 +18,21 @@ class PositionService(
     private val deviceRepository: DeviceRepository,
     private val positionReportRepository: PositionReportRepository
 ) {
-    fun report(trackableId: String, deviceId: String, position: PositionRequest): Mono<PositionReport> {
-        return ensureDevice(trackableId, deviceId).flatMap { device ->
-            val ts = position.createdAt ?: Instant.now()
+    fun report(trackableId: String, deviceId: String, positions: List<PositionRequest>): Flux<PositionReport> {
+        return ensureDevice(trackableId, deviceId).flatMapMany { device ->
+            val reports = positions.map { position ->
+                val ts = position.createdAt ?: Instant.now()
+                PositionReport.createFromLatAndLong(trackableId, position.latitude, position.longitude, ts)
+            }
 
-            val pr = PositionReport.createFromLatAndLong(
-                trackableId,
-                position.latitude,
-                position.longitude,
-                ts
-            )
+            // update device.lastReportedAt = last report's timestamp
+            device.lastReportedAt = reports.maxOf { it.createdAt!! }
 
-            // update device and save both
-            device.lastReportedAt = ts;
-
-            deviceRepository.save(device).then(
-                positionReportRepository.save(pr)
-            )
+            deviceRepository.save(device)
+                .thenMany(positionReportRepository.saveAll(reports))
         }
-
     }
+
 
     fun positions(
         positionType: PositionType,
