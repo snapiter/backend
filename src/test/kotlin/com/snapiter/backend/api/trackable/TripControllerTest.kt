@@ -50,7 +50,7 @@ class TripControllerTest {
         )
 
         whenever(tripRepository.findBySlugAndTrackableId(eq(request.slug), eq("track-123")))
-            .thenReturn(Mono.just(trip)) // found -> should trigger conflict error
+            .thenReturn(Mono.empty()) // found -> should trigger conflict error
         whenever(tripRepository.save(any()))
             .thenReturn(Mono.just(Trip(id = 2L, trackableId = "track-123", startDate = request.startDate,
                 endDate = request.endDate, title = request.title, description = request.description,
@@ -84,7 +84,7 @@ class TripControllerTest {
         )
 
         whenever(tripRepository.findBySlugAndTrackableId(eq(request.slug), eq("track-123")))
-            .thenReturn(Mono.empty()) // simulate that it should error
+            .thenReturn(Mono.just(trip)) // simulate that it should error
 
         // when
         val result = controller.createTrip("track-123", request)

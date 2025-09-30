@@ -61,26 +61,28 @@ class TripController(
         @RequestBody @Valid body: CreateTripRequest
     ): Mono<ResponseEntity<Void>> {
         return tripRepository.findBySlugAndTrackableId(body.slug, trackableId)
-            .switchIfEmpty(
+            .flatMap<Trip> {
                 Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Slug already exists for this trackable"))
-            )
-            .flatMap {
-                val trip = Trip(
-                    id = null,
-                    trackableId = trackableId,
-                    startDate = body.startDate,
-                    endDate = body.endDate,
-                    title = body.title,
-                    description = body.description,
-                    slug = body.slug,
-                    positionType = body.positionType,
-                    createdAt = Instant.now(),
-                    color = if (body.color.startsWith("#")) body.color else "#${body.color}",
-                    animationSpeed = body.animationSpeed
-                )
-                tripRepository.save(trip)
             }
-            .then(Mono.just(ResponseEntity.noContent().build()))
+            .switchIfEmpty(
+                Mono.defer {
+                    val trip = Trip(
+                        id = null,
+                        trackableId = trackableId,
+                        startDate = body.startDate,
+                        endDate = body.endDate,
+                        title = body.title,
+                        description = body.description,
+                        slug = body.slug,
+                        positionType = body.positionType,
+                        createdAt = Instant.now(),
+                        color = if (body.color.startsWith("#")) body.color else "#${body.color}",
+                        animationSpeed = body.animationSpeed
+                    )
+                    tripRepository.save(trip)
+                }
+            )
+            .thenReturn(ResponseEntity.noContent().build())
     }
 
     @PutMapping("/trips/{trip}")
@@ -147,6 +149,7 @@ data class CreateTripRequest(
 
     // ISO strings in UTC format (e.g., "2025-01-15T10:30:00Z")
     val startDate: Instant,
+
     val endDate: Instant? = null,
 
     val positionType: PositionType = PositionType.HOURLY,
