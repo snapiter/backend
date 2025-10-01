@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -51,7 +52,7 @@ class AuthController(
         ]
     )
     @PostMapping("/request")
-    fun request(@RequestBody body: MagicRequest): Mono<ResponseEntity<Void>> =
+    fun request(@Valid @RequestBody body: MagicRequest): Mono<ResponseEntity<Void>> =
         magic.requestLink(body.email)
             .thenReturn(ResponseEntity.ok().build())
 
@@ -74,7 +75,7 @@ class AuthController(
         ]
     )
     @PostMapping("/consume")
-    fun consume(@RequestBody body: ConsumeRequest, exchange: ServerWebExchange): Mono<Tokens> =
+    fun consume(@Valid @RequestBody body: ConsumeRequest, exchange: ServerWebExchange): Mono<Tokens> =
         magic.consume(body.token).flatMap { user ->
             refreshTokenService.startSession(user, exchange)
         }

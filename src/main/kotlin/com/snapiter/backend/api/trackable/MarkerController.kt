@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
@@ -43,7 +44,7 @@ class MarkerController(
     fun updateMarker(
         @PathVariable trackableId: String,
         @PathVariable markerId: String,
-        @RequestBody request: UpdateMarkerRequest
+        @Valid @RequestBody request: UpdateMarkerRequest
     ): Mono<ResponseEntity<Marker>> {
             return markerRepository.findByMarkerIdAndTrackableId(markerId, trackableId)
                 .flatMap { marker ->
@@ -88,7 +89,7 @@ class MarkerController(
     )
     fun uploadImage(
         @PathVariable trackableId: String,
-        @RequestBody parts: Flux<Part>
+        @Valid @RequestBody parts: Flux<Part>
     ): Mono<ResponseEntity<String>> {
         val fileId = UUID.randomUUID()
 

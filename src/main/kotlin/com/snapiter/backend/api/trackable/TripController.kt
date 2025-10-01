@@ -58,7 +58,7 @@ class TripController(
     )
     fun createTrip(
         @PathVariable trackableId: String,
-        @RequestBody @Valid body: CreateTripRequest
+        @Valid @RequestBody body: CreateTripRequest
     ): Mono<ResponseEntity<Void>> {
         return tripRepository.findBySlugAndTrackableId(body.slug, trackableId)
             .flatMap<Trip> {
@@ -116,7 +116,7 @@ class TripController(
     fun updateTrip(
         @PathVariable trackableId: String,
         @PathVariable trip: String,
-        @RequestBody body: UpdateTripRequest
+        @Valid @RequestBody body: UpdateTripRequest
     ): Mono<ResponseEntity<Void>> {
         return tripRepository.findBySlugAndTrackableId(trip, trackableId)
             .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))

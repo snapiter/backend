@@ -1,21 +1,16 @@
 package com.snapiter.backend.api.trackable
 
-import com.snapiter.backend.model.trackable.positionreport.PositionReport
 import com.snapiter.backend.model.trackable.positionreport.PositionService
-import com.snapiter.backend.model.trackable.trip.PositionType
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
-import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant
 
@@ -45,7 +40,7 @@ class PositionController(
     fun createPositionReport(
         @PathVariable trackableId: String,
         @PathVariable deviceId: String,
-        @RequestBody request: PositionRequest
+        @Valid @RequestBody request: PositionRequest
     ): Mono<ResponseEntity<Void>> {
         return positionService.report(trackableId, deviceId, listOf(request))
             .then(Mono.just(ResponseEntity.noContent().build()))
@@ -67,7 +62,7 @@ class PositionController(
     fun createPositionReports(
         @PathVariable trackableId: String,
         @PathVariable deviceId: String,
-        @RequestBody requests: List<PositionRequest>
+        @Valid @RequestBody requests: List<PositionRequest>
     ): Mono<ResponseEntity<Void>> {
         return positionService.report(trackableId, deviceId, requests)
             .then(Mono.just(ResponseEntity.noContent().build()))

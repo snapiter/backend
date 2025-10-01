@@ -6,14 +6,10 @@ import com.snapiter.backend.model.trackable.devices.DeviceRepository
 import com.snapiter.backend.model.trackable.trackable.Trackable
 import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import com.snapiter.backend.model.trackable.trackable.TrackableService
+import com.snapiter.backend.security.TrackableSecurityService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
-
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -23,10 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
 import java.time.Instant
-import java.time.Duration
-import com.snapiter.backend.security.TrackableSecurityService
-import org.mockito.kotlin.eq
-import java.util.UUID
+import java.util.*
 
 @WebFluxTest(controllers = [TrackableController::class, PublicTrackableController::class])
 @Import(TestSecurityConfig::class, TrackableSecurityService::class)
@@ -77,6 +70,26 @@ class TrackableControllerTest {
         assertEquals("snapiter.eu", saved.hostName)
         assertEquals("📍", saved.icon)
     }
+
+    @Test
+    fun `POST create returns 400 with empty name`() {
+        whenever(service.createTracker(any(),any())).thenReturn(Mono.just(trackable()))
+
+        val body = """
+            {"title":"","name":"","hostName":""}
+        """.trimIndent()
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isBadRequest
+    }
+
+
 
     @Test
     fun `GET by id returns 200 with entity`() {
