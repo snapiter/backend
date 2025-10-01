@@ -1,5 +1,6 @@
 package com.snapiter.backend.model.trackable.devices.tokens
 
+import org.springframework.security.core.AuthenticationException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -58,5 +59,5 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
 
 }
 
-class UnauthorizedTokenException(msg: String) : RuntimeException(msg)
-class UnclaimedTokenNotFound(msg: String) : RuntimeException(msg)
+class UnauthorizedTokenException(msg: String) : AuthenticationException(msg)
+class UnclaimedTokenNotFound(msg: String) : AuthenticationException(msg)
