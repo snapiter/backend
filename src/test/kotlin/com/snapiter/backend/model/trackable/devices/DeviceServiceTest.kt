@@ -14,10 +14,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
-import java.time.Instant
 import java.time.Duration
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -167,7 +165,6 @@ class DeviceServiceTest {
 
         verify(deviceRepository).findByDeviceIdAndTrackableId(deviceId, trackableId)
     }
-
     @Test
     fun `deleteDevice returns true when device exists and is deleted`() {
         val trackableId = "track-2"
@@ -181,6 +178,10 @@ class DeviceServiceTest {
             name = "NAME"
         )
 
+        // Stub revoke step (no tokens found)
+        Mockito.`when`(deviceTokenService.revokeByTrackableIdAndDeviceId(trackableId, deviceId))
+            .thenReturn(Mono.empty())
+
         Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId))
             .thenReturn(Mono.just(device))
         Mockito.`when`(deviceRepository.delete(device))
@@ -192,6 +193,7 @@ class DeviceServiceTest {
             .expectNext(true)
             .verifyComplete()
 
+        verify(deviceTokenService).revokeByTrackableIdAndDeviceId(trackableId, deviceId)
         verify(deviceRepository).findByDeviceIdAndTrackableId(deviceId, trackableId)
         verify(deviceRepository).delete(device)
     }
@@ -200,6 +202,10 @@ class DeviceServiceTest {
     fun `deleteDevice returns false when device does not exist`() {
         val trackableId = "track-3"
         val deviceId = "dev-3"
+
+        // Stub revoke step
+        Mockito.`when`(deviceTokenService.revokeByTrackableIdAndDeviceId(trackableId, deviceId))
+            .thenReturn(Mono.empty())
 
         Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId))
             .thenReturn(Mono.empty())
@@ -210,10 +216,11 @@ class DeviceServiceTest {
             .expectNext(false)
             .verifyComplete()
 
+        verify(deviceTokenService).revokeByTrackableIdAndDeviceId(trackableId, deviceId)
         verify(deviceRepository).findByDeviceIdAndTrackableId(deviceId, trackableId)
-        // Ensure delete is never called
         verify(deviceRepository, never()).delete(Mockito.any(Device::class.java))
     }
+
 
 
     private fun deviceToken(trackableId: String): DeviceToken {

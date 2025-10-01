@@ -6,5 +6,6 @@ import reactor.core.publisher.Mono
 
 interface DeviceTokenRepository : ReactiveCrudRepository<DeviceToken, Long> {
     fun findByTrackableIdAndDeviceIdNull(trackableId: String): Flux<DeviceToken>
+    fun findByTrackableIdAndDeviceId(trackableId: String, deviceId: String): Flux<DeviceToken>
     fun findByTokenHash(tokenHash: String): Mono<DeviceToken>
 }

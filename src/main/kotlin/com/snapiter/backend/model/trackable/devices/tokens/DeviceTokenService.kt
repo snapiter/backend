@@ -1,6 +1,7 @@
 package com.snapiter.backend.model.trackable.devices.tokens
 
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -40,6 +41,12 @@ class DeviceTokenService(private val repo: DeviceTokenRepository) {
 
     fun assignDeviceToToken(deviceToken: DeviceToken, deviceId: String): Mono<DeviceToken> {
         return repo.save(deviceToken.copy(deviceId = deviceId))
+    }
+
+    fun revokeByTrackableIdAndDeviceId(trackableId: String, deviceId: String): Mono<Void> {
+        return repo.findByTrackableIdAndDeviceId(trackableId, deviceId)
+            .flatMap { existing -> repo.save(existing.copy(revokedAt = now())) }
+            .then()
     }
 
 

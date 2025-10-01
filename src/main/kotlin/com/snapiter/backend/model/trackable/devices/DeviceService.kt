@@ -46,8 +46,13 @@ class DeviceService(
      * @return Mono<Boolean> -> true if a device was found and deleted, false if nothing matched.
      */
     fun deleteDevice(trackableId: String, deviceId: String): Mono<Boolean> {
-        return deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId)
-            .flatMap { deviceRepository.delete(it).thenReturn(true) }
-            .defaultIfEmpty(false)
+        return deviceTokenService.revokeByTrackableIdAndDeviceId(trackableId, deviceId)
+            .then(
+                deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId)
+                    .flatMap { deviceRepository.delete(it).thenReturn(true) }
+                    .defaultIfEmpty(false)
+            )
     }
+
+
 }
