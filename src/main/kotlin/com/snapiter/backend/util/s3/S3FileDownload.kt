@@ -17,10 +17,12 @@ class S3FileDownload(
     private val s3config: S3ClientConfigurationProperties
 ) {
 
-    fun downloadFileAsFlux(fileId: String): Flux<ByteBuffer> {
+    fun downloadFileAsFlux(fileId: String, filesDir: String? = null): Flux<ByteBuffer> {
+        val prefix = filesDir ?: s3config.filesDir
+
         val request = GetObjectRequest.builder()
             .bucket(s3config.bucket)
-            .key(s3config.filesDir + fileId)
+            .key(prefix + fileId)
             .build();
 
         return Mono.fromFuture(s3client.getObject(request, FluxByteBufferResponseTransformer()))

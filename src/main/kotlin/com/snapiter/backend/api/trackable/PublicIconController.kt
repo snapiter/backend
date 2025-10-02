@@ -20,22 +20,25 @@ import java.nio.channels.Channels
 @Tag(name = "Icon", description = "Specific icon to show on the map for trackable")
 class PublicIconController(
     private val s3FileDownload: S3FileDownload
-) {
+){
     @GetMapping("/icon")
     fun getIcon(
         @PathVariable trackableId: String,
     ): Mono<ResponseEntity<Flux<ByteBuffer>>> {
-        val s3Flux = s3FileDownload.downloadFileAsFlux("icons/$trackableId/icon.svg")
+        return s3FileDownload.downloadFileAsFlux("$trackableId/icon.svg", "icons/")
+            .collectList() // force evaluation once
+            .flatMap { buffers ->
+                val flux = Flux.fromIterable(buffers)
+                val svgResponse = ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, "image/svg+xml")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"icon.svg\"")
+                    .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+                    .body(flux)
+                Mono.just(svgResponse)
+            }
+            .onErrorResume { ex ->
+                println("Falling back: $ex")
 
-        val svgResponse = ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_TYPE, "image/svg+xml")
-            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"icon.svg\"")
-            .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
-            .body(s3Flux)
-
-        return Mono.just(svgResponse)
-            .onErrorResume { _ ->
-                // Build fallback GIF response
                 val resource = ClassPathResource("defaults/icon.gif")
                 val inputStream = resource.inputStream
                 val channel = Channels.newChannel(inputStream)
@@ -60,4 +63,5 @@ class PublicIconController(
                 Mono.just(gifResponse)
             }
     }
+
 }
