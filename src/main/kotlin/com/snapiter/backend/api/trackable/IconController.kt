@@ -96,7 +96,7 @@ class IconController(
             }
 
             // Save as fixed "icon.svg"
-            s3FileUpload.saveFile("icon.svg", filePart, trackableId)
+            s3FileUpload.saveFile("icon.svg", filePart, trackableId, "icons/")
                 .map {
                     ResponseEntity.ok("Icon uploaded successfully: ${it.filekey}")
                 }

@@ -23,7 +23,10 @@ class S3FileUpload(
     private val s3client: S3AsyncClient,
     private val s3config: S3ClientConfigurationProperties
 ) {
-    fun saveFile(fileName: String, part: FilePart, trackableId: String): Mono<FileUploadResult> {
+    fun saveFile(fileName: String, part: FilePart, trackableId: String, filesDir: String? = null): Mono<FileUploadResult> {
+        val prefix = filesDir ?: s3config.filesDir
+        val objectKey = "$prefix$trackableId/$fileName"
+
         val metadata: MutableMap<String, String?> = HashMap()
         var filename = part.filename()
 
@@ -39,7 +42,7 @@ class S3FileUpload(
             .createMultipartUpload(
                 CreateMultipartUploadRequest.builder()
                     .contentType(mt.toString())
-                    .key(s3config.filesDir  + fileName)
+                    .key(objectKey)
                     .metadata(metadata)
                     .bucket(s3config.bucket)
                     .build()
@@ -47,8 +50,9 @@ class S3FileUpload(
 
         val uploadState = UploadState(
             s3config.bucket,
-            "$trackableId/$fileName",
-            mt.toString()
+            objectKey,
+            mt.toString(),
+            prefix
         )
 
         return Mono
@@ -117,7 +121,7 @@ class S3FileUpload(
         val request: CompletableFuture<UploadPartResponse> = s3client.uploadPart(
             UploadPartRequest.builder()
                 .bucket(uploadState.bucket)
-                .key(s3config.filesDir + uploadState.filekey)
+                .key(uploadState.filesDir + uploadState.filekey)
                 .partNumber(partNumber)
                 .uploadId(uploadState.uploadId)
                 .contentLength(buffer.capacity().toLong())
@@ -145,7 +149,7 @@ class S3FileUpload(
                     .bucket(state.bucket)
                     .uploadId(state.uploadId)
                     .multipartUpload(multipartUpload)
-                    .key(s3config.filesDir + state.filekey)
+                    .key(state.filesDir + state.filekey)
                     .build()
             )
         )
@@ -167,7 +171,7 @@ class S3FileUpload(
     /**
      * Holds upload state during a multipart upload
      */
-    internal class UploadState(val bucket: String, val filekey: String, val contentType: String) {
+    internal class UploadState(val bucket: String, val filekey: String, val contentType: String, val filesDir: String) {
         var uploadId: String? = null
         var partCounter = 0
         var completedParts: MutableMap<Int, CompletedPart> = HashMap()
