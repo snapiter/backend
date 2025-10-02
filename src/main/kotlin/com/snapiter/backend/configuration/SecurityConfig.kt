@@ -87,7 +87,8 @@ class SecurityConfig(
                     "/api/trackables/*/trips/*/markers",
                     "/api/trackables/*/markers/**",
                     "/api/trackables/*/positions",
-                    "/api/trackables/host/**"
+                    "/api/trackables/host/**",
+                    "/api/trackables/*/icon"
                 ).permitAll()
                 it.pathMatchers(
                     HttpMethod.POST,
