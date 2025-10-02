@@ -42,7 +42,7 @@ class FileResponseWrapperService (
         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$trackableId-$fileId." + getExtension(fileType) + "\"")
         .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
         .body(
-            s3FileDownload.downloadFileAsFlux(fileId)
+            s3FileDownload.downloadFileAsFlux("$trackableId/$fileId")
         )
 
 }

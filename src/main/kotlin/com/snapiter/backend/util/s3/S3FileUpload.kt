@@ -16,8 +16,6 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import com.snapiter.backend.configuration.S3ClientConfigurationProperties
 import org.springframework.http.MediaTypeFactory
-import reactor.util.retry.Retry
-import java.time.Duration
 
 @Service
 @EnableConfigurationProperties(S3ClientConfigurationProperties::class)
@@ -25,19 +23,6 @@ class S3FileUpload(
     private val s3client: S3AsyncClient,
     private val s3config: S3ClientConfigurationProperties
 ) {
-    fun getHeadObjectResponse(fileName: String, retries: Int = 3): Mono<HeadObjectResponse> {
-        return Mono.fromFuture { headObjectResponse(fileName) }
-            .retryWhen(Retry.backoff(retries.toLong(), Duration.ofMillis(200)))
-    }
-
-    private fun headObjectResponse(fileName: String): CompletableFuture<HeadObjectResponse> {
-        return s3client.headObject(
-            HeadObjectRequest.builder()
-                .bucket(s3config.bucket)
-                .key(s3config.filesDir +  fileName)
-                .build()
-        )
-    }
     fun saveFile(fileName: UUID, part: FilePart, trackableId: String): Mono<FileUploadResult> {
         // Gather metadata
         val metadata: MutableMap<String, String?> = HashMap()
@@ -49,7 +34,6 @@ class S3FileUpload(
         val mt = part.headers().contentType
             ?.takeIf { it.type != "image" || it.subtype != "*" } // not just image/*
             ?: MediaTypeFactory.getMediaType(part.filename()).orElse(MediaType.APPLICATION_OCTET_STREAM)
-
 
         // Create multipart upload request
         val uploadRequest: CompletableFuture<CreateMultipartUploadResponse> = s3client
@@ -64,7 +48,7 @@ class S3FileUpload(
 
         val uploadState = UploadState(
             s3config.bucket,
-            fileName.toString(),
+            "$trackableId/$fileName",
             mt.toString()
         )
 
