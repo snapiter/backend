@@ -23,8 +23,7 @@ class S3FileUpload(
     private val s3client: S3AsyncClient,
     private val s3config: S3ClientConfigurationProperties
 ) {
-    fun saveFile(fileName: UUID, part: FilePart, trackableId: String): Mono<FileUploadResult> {
-        // Gather metadata
+    fun saveFile(fileName: String, part: FilePart, trackableId: String): Mono<FileUploadResult> {
         val metadata: MutableMap<String, String?> = HashMap()
         var filename = part.filename()
 
@@ -40,7 +39,7 @@ class S3FileUpload(
             .createMultipartUpload(
                 CreateMultipartUploadRequest.builder()
                     .contentType(mt.toString())
-                    .key(s3config.filesDir  + fileName.toString())
+                    .key(s3config.filesDir  + fileName)
                     .metadata(metadata)
                     .bucket(s3config.bucket)
                     .build()

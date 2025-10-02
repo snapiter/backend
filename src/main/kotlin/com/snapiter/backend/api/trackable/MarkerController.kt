@@ -108,7 +108,7 @@ class MarkerController(
 
             val fileParts = allParts.filterIsInstance<FilePart>()
             Flux.fromIterable(fileParts)
-                .flatMap { part -> s3FileUpload.saveFile(fileId, part, trackableId) }
+                .flatMap { part -> s3FileUpload.saveFile(fileId.toString(), part, trackableId) }
                 .last()
                 .map { uploadState ->
                     uploadState.contentLength
