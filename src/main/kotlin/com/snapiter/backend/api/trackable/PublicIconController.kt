@@ -1,6 +1,6 @@
 package com.snapiter.backend.api.trackable
 
-import com.snapiter.backend.util.s3.FileResponseWrapperService
+import com.snapiter.backend.util.s3.S3FileDownload
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 
@@ -18,40 +19,45 @@ import java.nio.channels.Channels
 @RequestMapping("/api/trackables/{trackableId}")
 @Tag(name = "Icon", description = "Specific icon to show on the map for trackable")
 class PublicIconController(
-    private val fileResponseWrapperService: FileResponseWrapperService
+    private val s3FileDownload: S3FileDownload
 ) {
     @GetMapping("/icon")
-    fun thumbnailMarker(
+    fun getIcon(
         @PathVariable trackableId: String,
-    ): ResponseEntity<Flux<ByteBuffer>> {
-        return try {
-            // normal case → SVG from S3
-            fileResponseWrapperService.previewFile(
-                trackableId,
-                "icons/$trackableId/icon.svg",
-                "image/svg+xml"
-            )
-        } catch (ex: Exception) {
-            val resource = ClassPathResource("defaults/icon.gif")
-            val inputStream = resource.inputStream
-            val channel = Channels.newChannel(inputStream)
+    ): Mono<ResponseEntity<Flux<ByteBuffer>>> {
+        val s3Flux = s3FileDownload.downloadFileAsFlux("icons/$trackableId/icon.svg")
 
-            val flux = Flux.generate<ByteBuffer> { sink ->
-                val buffer = ByteBuffer.allocate(8192)
-                val read = channel.read(buffer)
-                if (read == -1) {
-                    sink.complete()
-                } else {
-                    buffer.flip()
-                    sink.next(buffer)
-                }
-            }.doFinally { channel.close() }
+        val svgResponse = ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, "image/svg+xml")
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"icon.svg\"")
+            .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+            .body(s3Flux)
 
-            ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_GIF_VALUE)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"icon.gif\"")
-                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
-                .body(flux)
-        }
+        return Mono.just(svgResponse)
+            .onErrorResume { _ ->
+                // Build fallback GIF response
+                val resource = ClassPathResource("defaults/icon.gif")
+                val inputStream = resource.inputStream
+                val channel = Channels.newChannel(inputStream)
+
+                val gifFlux = Flux.generate<ByteBuffer> { sink ->
+                    val buffer = ByteBuffer.allocate(8192)
+                    val read = channel.read(buffer)
+                    if (read == -1) {
+                        sink.complete()
+                    } else {
+                        buffer.flip()
+                        sink.next(buffer)
+                    }
+                }.doFinally { channel.close() }
+
+                val gifResponse = ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_GIF_VALUE)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"icon.gif\"")
+                    .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+                    .body(gifFlux)
+
+                Mono.just(gifResponse)
+            }
     }
 }
