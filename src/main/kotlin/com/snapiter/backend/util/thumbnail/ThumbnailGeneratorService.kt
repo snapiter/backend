@@ -1,6 +1,7 @@
 package com.snapiter.backend.util.thumbnail
 
 import com.snapiter.backend.configuration.S3ClientConfigurationProperties
+import com.snapiter.backend.model.trackable.markers.Marker
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.core.async.AsyncRequestBody
@@ -20,18 +21,19 @@ class ThumbnailGeneratorService(
     private val s3config: S3ClientConfigurationProperties,
     private val thumbnailGenerator: ThumbnailGenerator
 ) {
-    fun create(fileId: String, fileType: String, width: Number, height: Number) {
+    fun create(marker: Marker, width: Number, height: Number) {
+        val fileId = marker.markerId
         println("Creating thumbnail for $fileId at ${width}x$height")
 
         try {
             putImage(
-                "thumbnails/" + fileId + "/" + width + "x" + height,
-                fileType,
+                marker.trackableId + "/thumbnails/" + fileId + "/" + width + "x" + height,
+                marker.fileType,
                 thumbnailGenerator.createThumbnail(
                     getS3ImageAsInputStream(
-                        s3config.filesDir +  fileId
+                        s3config.filesDir +  marker.trackableId + "/" + fileId
                     ),
-                    fileType,
+                    marker.fileType,
                     width,
                     height
                 )
