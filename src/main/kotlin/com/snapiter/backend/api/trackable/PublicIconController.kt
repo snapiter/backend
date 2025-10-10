@@ -33,6 +33,7 @@ class PublicIconController(
                     .header(HttpHeaders.CONTENT_TYPE, "image/svg+xml")
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"icon.svg\"")
                     .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400, immutable")
                     .body(flux)
                 Mono.just(svgResponse)
             }
