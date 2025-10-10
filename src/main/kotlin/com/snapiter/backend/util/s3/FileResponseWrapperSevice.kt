@@ -41,6 +41,7 @@ class FileResponseWrapperService (
         .header(HttpHeaders.CONTENT_TYPE, fileType)
         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$trackableId-$fileId." + getExtension(fileType) + "\"")
         .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+        .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
         .body(
             s3FileDownload.downloadFileAsFlux("$trackableId/$fileId")
         )
