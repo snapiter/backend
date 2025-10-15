@@ -1,9 +1,11 @@
 package com.snapiter.backend.util.thumbnail
 
 enum class ThumbnailSize(val width: Int, val height: Int, val value: String) {
-    SMALL(100, 100, "100x100"),
+    EXTRASMALL(100, 100, "100x100"),
+    SMALL(200, 200, "200x200"),
     MEDIUM(500, 500, "500x500"),
-    LARGE(1000, 1000, "1000x1000");
+    LARGE(1000, 1000, "1000x1000"),
+    EXTRALARGE(2000, 2000, "2000x2000");
 
     companion object {
         fun fromValue(value: String): ThumbnailSize? =
