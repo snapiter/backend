@@ -50,6 +50,8 @@ dependencies {
 	// Generate thumbnails
 	implementation("net.coobird:thumbnailator:0.4.20")
 
+	// Purely for icon svg convertion for the static map
+	implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
 
 	// For marker up and download to S3
 	implementation(platform("software.amazon.awssdk:bom:2.17.292"))

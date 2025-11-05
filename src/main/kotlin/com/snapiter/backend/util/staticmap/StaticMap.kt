@@ -1,6 +1,8 @@
 package com.snapiter.backend.util.staticmap
 
+import com.snapiter.backend.util.s3.S3FileDownload
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ClassPathResource
@@ -11,15 +13,32 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.imageio.ImageIO
 import kotlin.math.*
+import org.apache.batik.transcoder.TranscoderInput
+import org.apache.batik.transcoder.image.PNGTranscoder
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 @Service
-class StaticMap {
+class StaticMap (
+    private val s3FileDownload: S3FileDownload
+){
     @Value("\${staticmap.server}")
     private var tileServer: String = ""
     @Value("\${staticmap.tilesize}")
     private var tileSize: Int = 256
 
-    suspend fun generateMapImage(lat: Double, lon: Double, zoom: Int, imageSize: Int): BufferedImage {
+    fun svgBytesToBufferedImage(svgBytes: ByteArray): BufferedImage {
+        val input = TranscoderInput(ByteArrayInputStream(svgBytes))
+        val outputStream = ByteArrayOutputStream()
+
+        val transcoder = PNGTranscoder()
+        transcoder.transcode(input, org.apache.batik.transcoder.TranscoderOutput(outputStream))
+        outputStream.flush()
+
+        val pngBytes = outputStream.toByteArray()
+        return ImageIO.read(ByteArrayInputStream(pngBytes))
+    }
+    suspend fun generateMapImage(trackableId: String, lat: Double, lon: Double, zoom: Int, imageSize: Int): BufferedImage {
         val latRad = Math.toRadians(lat)
         val n = 1 shl zoom
         val xTileExact = (lon + 180.0) / 360.0 * n
@@ -50,10 +69,7 @@ class StaticMap {
             }
         }
 
-        val resource = ClassPathResource("defaults/icon.gif")
-        val markerImage = resource.inputStream.use { input ->
-            ImageIO.read(input)
-        }
+        val markerImage = markerImage(trackableId)
 
         // Draw the marker image at the center
         val centerX = imageSize / 2
@@ -93,4 +109,26 @@ class StaticMap {
             connection?.disconnect()
         }
     }
+
+    private suspend fun markerImage(trackableId: String): BufferedImage {
+        return try {
+            // Fetch SVG bytes from S3
+            val svgBytes = s3FileDownload.downloadFileAsFlux("$trackableId/icon.svg", "icons/")
+                .collectList()
+                .map { buffers ->
+                    buffers.fold(ByteArray(0)) { acc, buf ->
+                        acc + ByteArray(buf.remaining()).apply { buf.get(this) }
+                    }
+                }
+                .awaitSingle()
+
+            // Convert SVG → BufferedImage
+            svgBytesToBufferedImage(svgBytes)
+        } catch (e: Exception) {
+            println("Falling back to default marker: ${e.message}")
+            val resource = ClassPathResource("defaults/icon.gif")
+            resource.inputStream.use { ImageIO.read(it) }
+        }
+    }
+
 }

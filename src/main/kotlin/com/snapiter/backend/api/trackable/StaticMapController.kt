@@ -37,7 +37,7 @@ class StaticMapController (
         val position = positionService.lastPosition(trackableId).awaitSingleOrNull()
             ?: return@mono ResponseEntity.notFound().build()
 
-        val image = staticMap.generateMapImage(position.latitude, position.longitude, zoom, imageSize)
+        val image = staticMap.generateMapImage(trackableId,position.latitude, position.longitude, zoom, imageSize)
         val outputStream = ByteArrayOutputStream()
         ImageIO.write(image, "png", outputStream)
         val imageBytes = outputStream.toByteArray()
