@@ -33,6 +33,13 @@ class PositionService(
         }
     }
 
+    fun lastPosition(trackableId: String): Mono<PositionReport> {
+        return trackableRepository.findByTrackableId(trackableId)
+            .flatMap {
+                positionReportRepository.findFirstByTrackableIdOrderByCreatedAtDesc(trackableId)
+            }
+    }
+
 
     fun positions(
         positionType: PositionType,

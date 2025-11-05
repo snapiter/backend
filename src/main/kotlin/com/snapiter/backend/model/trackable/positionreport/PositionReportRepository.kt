@@ -3,6 +3,7 @@ package com.snapiter.backend.model.trackable.positionreport
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.time.Instant
 
 interface PositionReportRepository : ReactiveCrudRepository<PositionReport, Long> {
@@ -18,5 +19,7 @@ interface PositionReportRepository : ReactiveCrudRepository<PositionReport, Long
             "ORDER BY hour DESC OFFSET :offset LIMIT :limit",
     )
     fun findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDescAndTruncatedByHour(trackableId: String, fromDate: Instant, untilDate: Instant, offset: Int, limit: Int): Flux<PositionReport>
+
+    fun findFirstByTrackableIdOrderByCreatedAtDesc(trackableId: String): Mono<PositionReport>
 }
 

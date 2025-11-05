@@ -21,6 +21,7 @@ import org.springframework.web.cors.reactive.CorsWebFilter
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 
 import org.springframework.security.authorization.AuthorizationDecision
+import org.springframework.web.bind.annotation.GetMapping
 import reactor.core.publisher.Mono
 
 @Configuration
@@ -87,6 +88,7 @@ class SecurityConfig(
                     "/api/trackables/*/trips/*/markers",
                     "/api/trackables/*/markers/**",
                     "/api/trackables/*/positions",
+                    "/api/trackables/*/positions/last/staticmap",
                     "/api/trackables/host/**",
                     "/api/trackables/*/icon"
                 ).permitAll()

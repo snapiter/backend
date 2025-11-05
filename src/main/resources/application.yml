@@ -35,6 +35,10 @@ app:
     from: "${FROM_EMAIL:noreply@snapiter.com}"
 
 
+staticmap:
+  server: "https://tile.openstreetmap.org/{zoom}/{x}/{y}.png"
+  tilesize: 256
+
 aws:
   s3:
     bucket: ${BUCKET:fmv}
