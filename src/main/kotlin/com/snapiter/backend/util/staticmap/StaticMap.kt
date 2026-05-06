@@ -94,7 +94,8 @@ class StaticMap (
 
             val tileURL = URL(tileURLString)
             connection = tileURL.openConnection() as HttpURLConnection
-            connection.setRequestProperty("User-Agent", "YourAppName/1.0 (your_email@example.com)")
+            connection.setRequestProperty("User-Agent", "YourAppName/1.0 (info@snapiter.com)")
+            connection.setRequestProperty("Referer", "https://snapiter.com")
             connection.connect()
             if (connection.responseCode == 200) {
                 ImageIO.read(connection.inputStream)
@@ -107,8 +108,10 @@ class StaticMap (
             null
         } finally {
             connection?.disconnect()
+
         }
     }
+
 
     private suspend fun markerImage(trackableId: String): BufferedImage {
         return try {
