@@ -94,7 +94,7 @@ class StaticMap (
 
             val tileURL = URL(tileURLString)
             connection = tileURL.openConnection() as HttpURLConnection
-            connection.setRequestProperty("User-Agent", "YourAppName/1.0 (info@snapiter.com)")
+            connection.setRequestProperty("User-Agent", "SnapIter/1.0 (info@snapiter.com)")
             connection.setRequestProperty("Referer", "https://snapiter.com")
             connection.connect()
             if (connection.responseCode == 200) {
