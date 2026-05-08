@@ -36,7 +36,7 @@ app:
 
 
 staticmap:
-  server: "https://tile.openstreetmap.org/{zoom}/{x}/{y}.png"
+  server: "${STATICMAP_SERVER:https://tile.openstreetmap.org/{zoom}/{x}/{y}.png}"
   tilesize: 256
 
 aws:
