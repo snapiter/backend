@@ -121,7 +121,7 @@ class S3FileUpload(
         val request: CompletableFuture<UploadPartResponse> = s3client.uploadPart(
             UploadPartRequest.builder()
                 .bucket(uploadState.bucket)
-                .key(uploadState.filesDir + uploadState.filekey)
+                .key(uploadState.filekey)
                 .partNumber(partNumber)
                 .uploadId(uploadState.uploadId)
                 .contentLength(buffer.capacity().toLong())
@@ -149,7 +149,7 @@ class S3FileUpload(
                     .bucket(state.bucket)
                     .uploadId(state.uploadId)
                     .multipartUpload(multipartUpload)
-                    .key(state.filesDir + state.filekey)
+                    .key(state.filekey)
                     .build()
             )
         )
