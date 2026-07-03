@@ -26,8 +26,8 @@ class StaticMap (
     private var tileServer: String = ""
     @Value("\${staticmap.tilesize}")
     private var tileSize: Int = 256
-    @Value("\${staticmap.markersize:48}")
-    private var markerSize: Int = 48
+    @Value("\${staticmap.markersize:42}")
+    private var markerSize: Int = 42
 
     fun svgBytesToBufferedImage(svgBytes: ByteArray, size: Int = markerSize): BufferedImage {
         val input = TranscoderInput(ByteArrayInputStream(svgBytes))
