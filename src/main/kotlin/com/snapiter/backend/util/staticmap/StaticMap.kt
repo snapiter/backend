@@ -26,12 +26,16 @@ class StaticMap (
     private var tileServer: String = ""
     @Value("\${staticmap.tilesize}")
     private var tileSize: Int = 256
+    @Value("\${staticmap.markersize:48}")
+    private var markerSize: Int = 48
 
-    fun svgBytesToBufferedImage(svgBytes: ByteArray): BufferedImage {
+    fun svgBytesToBufferedImage(svgBytes: ByteArray, size: Int = markerSize): BufferedImage {
         val input = TranscoderInput(ByteArrayInputStream(svgBytes))
         val outputStream = ByteArrayOutputStream()
 
         val transcoder = PNGTranscoder()
+        transcoder.addTranscodingHint(PNGTranscoder.KEY_MAX_WIDTH, size.toFloat())
+        transcoder.addTranscodingHint(PNGTranscoder.KEY_MAX_HEIGHT, size.toFloat())
         transcoder.transcode(input, org.apache.batik.transcoder.TranscoderOutput(outputStream))
         outputStream.flush()
 
