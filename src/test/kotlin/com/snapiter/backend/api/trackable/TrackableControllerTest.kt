@@ -119,7 +119,6 @@ class TrackableControllerTest {
         name = "SnapIter name",
         title = "SnapIter",
         hostName = "snapiter.eu",
-        icon = "📍",
         createdAt = Instant.parse("2025-09-10T12:34:56Z"),
         userId = UUID.randomUUID()
     )
@@ -150,7 +149,6 @@ class TrackableControllerTest {
             name = "By Host",
             title = "SnapIter",
             hostName = "snapiter.eu",
-            icon = "📍",
             createdAt = Instant.parse("2025-09-10T12:34:56Z"),
             userId = UUID.randomUUID()
 

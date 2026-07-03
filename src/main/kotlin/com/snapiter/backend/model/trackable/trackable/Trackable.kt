@@ -16,7 +16,6 @@ data class Trackable (
     val name: String?,
     val title: String = "",
     val hostName: String = "",
-    val icon: String = "",
 
     val createdAt: Instant?,
 

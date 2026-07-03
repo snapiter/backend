@@ -15,7 +15,6 @@ class TrackableService ( private val trackableRepository: TrackableRepository ){
             name = req.name,
             title = req.title ?: "",
             hostName = req.hostName ?: "",
-            icon = req.icon ?: "",
             createdAt = Instant.now(),
             userId = userId
         )
