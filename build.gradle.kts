@@ -52,6 +52,8 @@ dependencies {
 
 	// Purely for icon svg convertion for the static map
 	implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
+	// Provides the PNG WriteAdapter used by PNGTranscoder (not pulled in transitively)
+	implementation("org.apache.xmlgraphics:batik-codec:1.19")
 
 	// For marker up and download to S3
 	implementation(platform("software.amazon.awssdk:bom:2.17.292"))

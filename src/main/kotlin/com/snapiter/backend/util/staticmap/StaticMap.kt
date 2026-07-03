@@ -128,7 +128,7 @@ class StaticMap (
             // Convert SVG → BufferedImage
             svgBytesToBufferedImage(svgBytes)
         } catch (e: Exception) {
-            println("Falling back to default marker: ${e.message}")
+            println("Falling back to default marker: ${e.message ?: e.cause?.message ?: e}")
             val resource = ClassPathResource("defaults/icon.gif")
             resource.inputStream.use { ImageIO.read(it) }
         }
