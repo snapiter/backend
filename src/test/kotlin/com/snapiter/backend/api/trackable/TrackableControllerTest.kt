@@ -47,8 +47,7 @@ class TrackableControllerTest {
             {
               "name": "SnapIter name",
               "title": "SnapIter",
-              "hostName": "snapiter.eu",
-              "icon": "📍"
+              "hostName": "snapiter.eu"
             }
         """.trimIndent()
 
@@ -68,7 +67,6 @@ class TrackableControllerTest {
         assertEquals("SnapIter name", saved.name)
         assertEquals("SnapIter", saved.title)
         assertEquals("snapiter.eu", saved.hostName)
-        assertEquals("📍", saved.icon)
     }
 
     @Test
@@ -111,7 +109,6 @@ class TrackableControllerTest {
             .jsonPath("$.name").isEqualTo("SnapIter name")
             .jsonPath("$.title").isEqualTo("SnapIter")
             .jsonPath("$.hostName").isEqualTo("snapiter.eu")
-            .jsonPath("$.icon").isEqualTo("📍")
     }
 
     private fun trackable(): Trackable = Trackable(
