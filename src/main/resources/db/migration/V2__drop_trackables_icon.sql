@@ -1,0 +1,2 @@
+ALTER TABLE trackables
+    DROP COLUMN IF EXISTS icon;
