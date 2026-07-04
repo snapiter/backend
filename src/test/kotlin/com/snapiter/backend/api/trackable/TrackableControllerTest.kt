@@ -54,7 +54,7 @@ class TrackableControllerTest {
         webTestClient
             .withDevicePrincipal()
             .post()
-            .uri(git "/api/trackables")
+            .uri("/api/trackables")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
