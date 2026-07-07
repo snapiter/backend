@@ -37,11 +37,7 @@ class DeviceAlertService(
             setTo(email)
             subject = "Device battery alert"
             text = """
-                Hi,
-
                 Your device "$deviceName" reported a battery alert.
-
-                Please check your dashboard for more details.
             """.trimIndent()
         }
         mailSender.send(msg)
