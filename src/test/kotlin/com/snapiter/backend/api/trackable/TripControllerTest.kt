@@ -9,6 +9,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
@@ -154,6 +156,48 @@ class TripControllerTest {
         assertThat(saved.id).isEqualTo(existingTrip.id)
         assertThat(saved.trackableId).isEqualTo(existingTrip.trackableId)
         assertThat(saved.createdAt).isEqualTo(existingTrip.createdAt)
+    }
+
+    @Test
+    fun `deleteTrip should delete the found trip and return no content`() {
+        val existingTrip = trip.copy(id = 7L, trackableId = "track-123", slug = "to-delete")
+
+        whenever(tripRepository.findBySlugAndTrackableId(eq("to-delete"), eq("track-123")))
+            .thenReturn(Mono.just(existingTrip))
+        val captor = argumentCaptor<Trip>()
+        whenever(tripRepository.delete(captor.capture()))
+            .thenReturn(Mono.empty())
+
+        val result = controller.deleteTrip("track-123", "to-delete")
+
+        StepVerifier.create(result)
+            .consumeNextWith { response ->
+                assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            }
+            .verifyComplete()
+
+        // only the trip itself is deleted; the exact entity that was looked up
+        assertThat(captor.firstValue).isEqualTo(existingTrip)
+        verify(tripRepository).delete(existingTrip)
+    }
+
+    @Test
+    fun `deleteTrip should throw not found when the trip does not exist`() {
+        whenever(tripRepository.findBySlugAndTrackableId(eq("missing"), eq("track-123")))
+            .thenReturn(Mono.empty())
+
+        val result = controller.deleteTrip("track-123", "missing")
+
+        StepVerifier.create(result)
+            .expectErrorSatisfies { error ->
+                assertThat(error).isInstanceOf(ResponseStatusException::class.java)
+                val ex = error as ResponseStatusException
+                assertThat(ex.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+                assertThat(ex.reason).isEqualTo("Trip not found")
+            }
+            .verify()
+
+        verify(tripRepository, never()).delete(any())
     }
 
     @Test

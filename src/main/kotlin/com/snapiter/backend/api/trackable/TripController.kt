@@ -134,6 +134,38 @@ class TripController(
                 tripRepository.save(updated).thenReturn(ResponseEntity.noContent().build<Void>())
             }
     }
+
+    @DeleteMapping("/trips/{trip}")
+    @Operation(
+        summary = "Delete a trip",
+        description = "Deletes a single trip. Positions and markers belong to the trackable, " +
+            "not the trip, and are left untouched."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "204", description = "Trip deleted successfully, no content returned"
+            ),
+            ApiResponse(
+                responseCode = "404", description = "Trip not found",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+            ApiResponse(
+                responseCode = "500", description = "Server error",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+        ]
+    )
+    fun deleteTrip(
+        @PathVariable trackableId: String,
+        @PathVariable trip: String
+    ): Mono<ResponseEntity<Void>> {
+        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
+            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
+            .flatMap { existing ->
+                tripRepository.delete(existing).thenReturn(ResponseEntity.noContent().build<Void>())
+            }
+    }
 }
 
 
