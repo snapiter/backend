@@ -5,6 +5,7 @@ import com.snapiter.backend.model.trackable.devices.tokens.UnclaimedTokenNotFoun
 import com.snapiter.backend.security.ExpiredTokenException
 import com.snapiter.backend.security.InvalidTokenException
 import com.snapiter.backend.security.UnauthorizedRefreshTokenException
+import com.fasterxml.jackson.annotation.JsonInclude
 import io.jsonwebtoken.ExpiredJwtException
 import jakarta.mail.SendFailedException
 import org.springframework.dao.DuplicateKeyException
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.server.ServerWebInputException
 import reactor.core.publisher.Mono
 
 @ControllerAdvice
@@ -92,10 +95,32 @@ class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
     }
 
+    @ExceptionHandler(WebExchangeBindException::class)
+    fun handleValidation(ex: WebExchangeBindException): Mono<ResponseEntity<ErrorResponse>> {
+        val fields = ex.bindingResult.fieldErrors.associate { it.field to (it.defaultMessage ?: "invalid") }
+        val errorResponse = ErrorResponse(
+            error = "validation_error",
+            message = "One or more fields are invalid",
+            fields = fields
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
+    }
+
+    @ExceptionHandler(ServerWebInputException::class)
+    fun handleMalformedInput(ex: ServerWebInputException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "malformed_request",
+            message = "The request body could not be read"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
+    }
+
 }
 
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class ErrorResponse(
     val error: String,
-    val message: String
+    val message: String,
+    val fields: Map<String, String>? = null
 )
