@@ -168,6 +168,40 @@ class TripController(
             }
     }
 
+    @PutMapping("/trips/{trip}/end")
+    @Operation(
+        summary = "End a trip",
+        description = "Marks the trip as ended by setting its endDate to the current time. " +
+            "Idempotent: a trip that already has an endDate keeps its original end time. " +
+            "To change an existing end time, use the update endpoint."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "204", description = "Trip ended, no content returned"
+            ),
+            ApiResponse(
+                responseCode = "404", description = "Trip not found",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+            ApiResponse(
+                responseCode = "500", description = "Server error",
+                content = [Content(schema = Schema(implementation = org.springframework.http.ProblemDetail::class))]
+            ),
+        ]
+    )
+    fun endTrip(
+        @PathVariable trackableId: String,
+        @PathVariable trip: String
+    ): Mono<ResponseEntity<Void>> {
+        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
+            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
+            .flatMap { existing ->
+                tripRepository.save(existing.copy(endDate = existing.endDate ?: Instant.now()))
+                    .thenReturn(ResponseEntity.noContent().build<Void>())
+            }
+    }
+
     @DeleteMapping("/trips/{trip}")
     @Operation(
         summary = "Delete a trip",

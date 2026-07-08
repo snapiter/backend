@@ -159,6 +159,84 @@ class TripControllerTest {
     }
 
     @Test
+    fun `endTrip should set endDate to now when the trip has no endDate`() {
+        val existingTrip = trip.copy(
+            id = 11L,
+            trackableId = "track-123",
+            slug = "to-end",
+            endDate = null
+        )
+
+        whenever(tripRepository.findBySlugAndTrackableId(eq("to-end"), eq("track-123")))
+            .thenReturn(Mono.just(existingTrip))
+        val captor = argumentCaptor<Trip>()
+        whenever(tripRepository.save(captor.capture()))
+            .thenAnswer { Mono.just(captor.firstValue) }
+
+        val before = Instant.now()
+        val result = controller.endTrip("track-123", "to-end")
+
+        StepVerifier.create(result)
+            .consumeNextWith { response ->
+                assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            }
+            .verifyComplete()
+
+        val saved = captor.firstValue
+        assertThat(saved.endDate).isNotNull()
+        assertThat(saved.endDate).isBetween(before, Instant.now())
+        // only endDate changes
+        assertThat(saved).usingRecursiveComparison().ignoringFields("endDate").isEqualTo(existingTrip)
+    }
+
+    @Test
+    fun `endTrip should keep the original endDate when already ended`() {
+        val originalEnd = Instant.parse("2025-01-05T10:00:00Z")
+        val existingTrip = trip.copy(
+            id = 12L,
+            trackableId = "track-123",
+            slug = "already-ended",
+            endDate = originalEnd
+        )
+
+        whenever(tripRepository.findBySlugAndTrackableId(eq("already-ended"), eq("track-123")))
+            .thenReturn(Mono.just(existingTrip))
+        val captor = argumentCaptor<Trip>()
+        whenever(tripRepository.save(captor.capture()))
+            .thenAnswer { Mono.just(captor.firstValue) }
+
+        val result = controller.endTrip("track-123", "already-ended")
+
+        StepVerifier.create(result)
+            .consumeNextWith { response ->
+                assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            }
+            .verifyComplete()
+
+        // idempotent: end time is unchanged
+        assertThat(captor.firstValue.endDate).isEqualTo(originalEnd)
+    }
+
+    @Test
+    fun `endTrip should throw not found when the trip does not exist`() {
+        whenever(tripRepository.findBySlugAndTrackableId(eq("missing"), eq("track-123")))
+            .thenReturn(Mono.empty())
+
+        val result = controller.endTrip("track-123", "missing")
+
+        StepVerifier.create(result)
+            .expectErrorSatisfies { error ->
+                assertThat(error).isInstanceOf(ResponseStatusException::class.java)
+                val ex = error as ResponseStatusException
+                assertThat(ex.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+                assertThat(ex.reason).isEqualTo("Trip not found")
+            }
+            .verify()
+
+        verify(tripRepository, never()).save(any())
+    }
+
+    @Test
     fun `deleteTrip should delete the found trip and return no content`() {
         val existingTrip = trip.copy(id = 7L, trackableId = "track-123", slug = "to-delete")
 
