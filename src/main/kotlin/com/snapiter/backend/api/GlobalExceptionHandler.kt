@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.ServerWebInputException
 import reactor.core.publisher.Mono
 
@@ -113,6 +114,16 @@ class GlobalExceptionHandler {
             message = "The request body could not be read"
         )
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
+    }
+
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatus(ex: ResponseStatusException): Mono<ResponseEntity<ErrorResponse>> {
+        val status = HttpStatus.resolve(ex.statusCode.value()) ?: HttpStatus.INTERNAL_SERVER_ERROR
+        val errorResponse = ErrorResponse(
+            error = status.name.lowercase(),
+            message = ex.reason ?: "Request could not be processed"
+        )
+        return Mono.just(ResponseEntity.status(ex.statusCode).body(errorResponse))
     }
 
 }

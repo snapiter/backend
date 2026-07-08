@@ -3,9 +3,12 @@ package com.snapiter.backend.api.trackable
 import com.snapiter.backend.api.GlobalExceptionHandler
 import com.snapiter.backend.model.trackable.trip.TripRepository
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import reactor.core.publisher.Mono
 
 class ErrorValidationResponseTest {
     private val tripRepository: TripRepository = mock()
@@ -54,6 +57,20 @@ class ErrorValidationResponseTest {
             .expectStatus().isBadRequest
             .expectBody()
             .jsonPath("$.error").isEqualTo("malformed_request")
+            .jsonPath("$.fields").doesNotExist()
+    }
+
+    @Test
+    fun `should map 404 error to the standard error response`() {
+        whenever(tripRepository.findBySlugAndTrackableId(any(), any())).thenReturn(Mono.empty())
+
+        client.put()
+            .uri("/api/trackables/track-123/trips/does-not-exist/active")
+            .exchange()
+            .expectStatus().isNotFound
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("not_found")
+            .jsonPath("$.message").isEqualTo("Trip not found")
             .jsonPath("$.fields").doesNotExist()
     }
 }
