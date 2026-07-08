@@ -182,6 +182,54 @@ class TripControllerTest {
     }
 
     @Test
+    fun `markTripActive should clear the endDate and return no content`() {
+        val existingTrip = trip.copy(
+            id = 9L,
+            trackableId = "track-123",
+            slug = "ongoing",
+            endDate = Instant.parse("2025-01-05T10:00:00Z")
+        )
+
+        whenever(tripRepository.findBySlugAndTrackableId(eq("ongoing"), eq("track-123")))
+            .thenReturn(Mono.just(existingTrip))
+        val captor = argumentCaptor<Trip>()
+        whenever(tripRepository.save(captor.capture()))
+            .thenAnswer { Mono.just(captor.firstValue) }
+
+        val result = controller.markTripActive("track-123", "ongoing")
+
+        StepVerifier.create(result)
+            .consumeNextWith { response ->
+                assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            }
+            .verifyComplete()
+
+        val saved = captor.firstValue
+        // endDate cleared, everything else untouched
+        assertThat(saved.endDate).isNull()
+        assertThat(saved).usingRecursiveComparison().ignoringFields("endDate").isEqualTo(existingTrip)
+    }
+
+    @Test
+    fun `markTripActive should throw not found when the trip does not exist`() {
+        whenever(tripRepository.findBySlugAndTrackableId(eq("missing"), eq("track-123")))
+            .thenReturn(Mono.empty())
+
+        val result = controller.markTripActive("track-123", "missing")
+
+        StepVerifier.create(result)
+            .expectErrorSatisfies { error ->
+                assertThat(error).isInstanceOf(ResponseStatusException::class.java)
+                val ex = error as ResponseStatusException
+                assertThat(ex.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+                assertThat(ex.reason).isEqualTo("Trip not found")
+            }
+            .verify()
+
+        verify(tripRepository, never()).save(any())
+    }
+
+    @Test
     fun `deleteTrip should throw not found when the trip does not exist`() {
         whenever(tripRepository.findBySlugAndTrackableId(eq("missing"), eq("track-123")))
             .thenReturn(Mono.empty())
