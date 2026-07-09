@@ -2,6 +2,7 @@ package com.snapiter.backend.api.trackable
 
 import com.snapiter.backend.api.GlobalExceptionHandler
 import com.snapiter.backend.model.trackable.trip.TripRepository
+import com.snapiter.backend.model.trackable.trip.TripService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -13,7 +14,7 @@ import reactor.core.publisher.Mono
 class ErrorValidationResponseTest {
     private val tripRepository: TripRepository = mock()
     private val client: WebTestClient =
-        WebTestClient.bindToController(TripController(tripRepository))
+        WebTestClient.bindToController(TripController(TripService(tripRepository)))
             .controllerAdvice(GlobalExceptionHandler())
             .build()
 

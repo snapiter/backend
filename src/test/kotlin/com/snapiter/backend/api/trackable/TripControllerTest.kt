@@ -3,6 +3,7 @@ package com.snapiter.backend.api.trackable
 import com.snapiter.backend.model.trackable.trip.PositionType
 import com.snapiter.backend.model.trackable.trip.Trip
 import com.snapiter.backend.model.trackable.trip.TripRepository
+import com.snapiter.backend.model.trackable.trip.TripService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -21,7 +22,7 @@ import java.time.Duration
 
 class TripControllerTest {
     private val tripRepository: TripRepository = mock()
-    private val controller = TripController(tripRepository)
+    private val controller = TripController(TripService(tripRepository))
 
     val trip = Trip(
         id = 2L,

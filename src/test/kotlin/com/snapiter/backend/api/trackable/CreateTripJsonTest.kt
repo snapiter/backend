@@ -3,6 +3,7 @@ package com.snapiter.backend.api.trackable
 import com.snapiter.backend.model.trackable.trip.PositionType
 import com.snapiter.backend.model.trackable.trip.Trip
 import com.snapiter.backend.model.trackable.trip.TripRepository
+import com.snapiter.backend.model.trackable.trip.TripService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -26,7 +27,7 @@ import reactor.core.publisher.Mono
 class CreateTripJsonTest {
     private val tripRepository: TripRepository = mock()
     private val client: WebTestClient =
-        WebTestClient.bindToController(TripController(tripRepository)).build()
+        WebTestClient.bindToController(TripController(TripService(tripRepository))).build()
 
     @Test
     fun `creating a trip with only the required fields applies Kotlin defaults`() {

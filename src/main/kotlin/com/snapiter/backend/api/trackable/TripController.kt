@@ -1,8 +1,7 @@
 package com.snapiter.backend.api.trackable
 
 import com.snapiter.backend.model.trackable.trip.PositionType
-import com.snapiter.backend.model.trackable.trip.Trip
-import com.snapiter.backend.model.trackable.trip.TripRepository
+import com.snapiter.backend.model.trackable.trip.TripService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -14,11 +13,9 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.Instant
 
@@ -30,7 +27,7 @@ import java.time.Instant
 @SecurityRequirement(name = "bearerAuth")
 @SecurityRequirement(name = "deviceToken")
 class TripController(
-    private val tripRepository: TripRepository
+    private val tripService: TripService
 ) {
     @PostMapping("/trips")
     @Operation(
@@ -60,28 +57,7 @@ class TripController(
         @PathVariable trackableId: String,
         @Valid @RequestBody body: CreateTripRequest
     ): Mono<ResponseEntity<Void>> {
-        return tripRepository.findBySlugAndTrackableId(body.slug, trackableId)
-            .flatMap<Trip> {
-                Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Slug already exists for this trackable"))
-            }
-            .switchIfEmpty(
-                Mono.defer {
-                    val trip = Trip(
-                        id = null,
-                        trackableId = trackableId,
-                        startDate = body.startDate,
-                        endDate = body.endDate,
-                        title = body.title,
-                        description = body.description,
-                        slug = body.slug,
-                        positionType = body.positionType,
-                        createdAt = Instant.now(),
-                        color = if (body.color.startsWith("#")) body.color else "#${body.color}",
-                        animationSpeed = body.animationSpeed
-                    )
-                    tripRepository.save(trip)
-                }
-            )
+        return tripService.createTrip(trackableId, body)
             .thenReturn(ResponseEntity.noContent().build())
     }
 
@@ -118,21 +94,8 @@ class TripController(
         @PathVariable trip: String,
         @Valid @RequestBody body: UpdateTripRequest
     ): Mono<ResponseEntity<Void>> {
-        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
-            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
-            .flatMap { existing ->
-                val updated = existing.copy(
-                    title = body.title ?: existing.title,
-                    description = body.description ?: existing.description,
-                    slug = body.slug ?: existing.slug,
-                    startDate = body.startDate ?: existing.startDate,
-                    endDate = body.endDate ?: existing.endDate,
-                    positionType = body.positionType ?: existing.positionType,
-                    color = body.color?.let { if (it.startsWith("#")) it else "#$it" } ?: existing.color,
-                    animationSpeed = body.animationSpeed ?: existing.animationSpeed,
-                )
-                tripRepository.save(updated).thenReturn(ResponseEntity.noContent().build<Void>())
-            }
+        return tripService.updateTrip(trackableId, trip, body)
+            .thenReturn(ResponseEntity.noContent().build())
     }
 
     @PutMapping("/trips/{trip}/active")
@@ -160,12 +123,8 @@ class TripController(
         @PathVariable trackableId: String,
         @PathVariable trip: String
     ): Mono<ResponseEntity<Void>> {
-        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
-            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
-            .flatMap { existing ->
-                tripRepository.save(existing.copy(endDate = null))
-                    .thenReturn(ResponseEntity.noContent().build<Void>())
-            }
+        return tripService.markTripActive(trackableId, trip)
+            .thenReturn(ResponseEntity.noContent().build())
     }
 
     @PutMapping("/trips/{trip}/end")
@@ -194,12 +153,8 @@ class TripController(
         @PathVariable trackableId: String,
         @PathVariable trip: String
     ): Mono<ResponseEntity<Void>> {
-        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
-            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
-            .flatMap { existing ->
-                tripRepository.save(existing.copy(endDate = existing.endDate ?: Instant.now()))
-                    .thenReturn(ResponseEntity.noContent().build<Void>())
-            }
+        return tripService.endTrip(trackableId, trip)
+            .thenReturn(ResponseEntity.noContent().build())
     }
 
     @DeleteMapping("/trips/{trip}")
@@ -227,11 +182,8 @@ class TripController(
         @PathVariable trackableId: String,
         @PathVariable trip: String
     ): Mono<ResponseEntity<Void>> {
-        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
-            .switchIfEmpty(Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found")))
-            .flatMap { existing ->
-                tripRepository.delete(existing).thenReturn(ResponseEntity.noContent().build<Void>())
-            }
+        return tripService.deleteTrip(trackableId, trip)
+            .thenReturn(ResponseEntity.noContent().build())
     }
 }
 
