@@ -5,7 +5,7 @@ import com.snapiter.backend.model.trackable.markers.MarkerRepository
 import com.snapiter.backend.model.trackable.positionreport.PositionReport
 import com.snapiter.backend.model.trackable.positionreport.PositionService
 import com.snapiter.backend.model.trackable.trip.Trip
-import com.snapiter.backend.model.trackable.trip.TripRepository
+import com.snapiter.backend.model.trackable.trip.TripService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
@@ -29,7 +29,7 @@ import java.time.Instant
 class PublicTripController(
     private val positionService: PositionService,
     private val markerRepository: MarkerRepository,
-    private val tripRepository: TripRepository
+    private val tripService: TripService
 ) {
     @GetMapping("/trips")
     @Operation(
@@ -43,7 +43,7 @@ class PublicTripController(
     fun getTrips(
         @PathVariable trackableId: String
     ): Flux<Trip> {
-        return tripRepository.findAllByTrackableIdOrderByEndDateDescNullsFirst(trackableId);
+        return tripService.getTrips(trackableId);
     }
 
 
@@ -70,7 +70,7 @@ class PublicTripController(
         @PathVariable trackableId: String,
         @PathVariable trip: String,
     ): Mono<Trip> {
-        return tripRepository.findBySlugAndTrackableId(trip, trackableId);
+        return tripService.getTrip(trackableId, trip);
     }
 
     @GetMapping("/trips/{trip}/positions")
@@ -87,7 +87,7 @@ class PublicTripController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "500") size: Int
     ): Flux<PositionReport> {
-        return tripRepository.findBySlugAndTrackableId(trip, trackableId)
+        return tripService.getTrip(trackableId, trip)
             .switchIfEmpty(
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found"))
             )
@@ -127,7 +127,7 @@ class PublicTripController(
         @PathVariable trackableId: String,
         @PathVariable trip: String,
     ): Mono<ResponseEntity<Flux<Marker>>> {
-        return tripRepository.findBySlugAndTrackableId(trip, trackableId).map {
+        return tripService.getTrip(trackableId, trip).map {
             markerRepository.findAllByTrackableIdAndCreatedAtIsBetweenOrderByCreatedAtDesc(
                 trackableId,
                 it.startDate,

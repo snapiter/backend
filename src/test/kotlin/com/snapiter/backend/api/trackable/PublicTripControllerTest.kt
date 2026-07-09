@@ -6,6 +6,7 @@ import com.snapiter.backend.model.trackable.positionreport.PositionService
 import com.snapiter.backend.model.trackable.trip.PositionType
 import com.snapiter.backend.model.trackable.trip.Trip
 import com.snapiter.backend.model.trackable.trip.TripRepository
+import com.snapiter.backend.model.trackable.trip.TripService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -25,7 +26,7 @@ class PublicTripControllerTest {
     private val tripRepository = mock<TripRepository>()
     private val positionService = mock<PositionService>()
 
-    private val controller = PublicTripController(positionService, markerRepository, tripRepository)
+    private val controller = PublicTripController(positionService, markerRepository, TripService(tripRepository))
 
     @Test
     fun `should return markers for trip`() {
