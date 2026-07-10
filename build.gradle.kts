@@ -39,8 +39,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 
 	// For QR code
-	implementation("com.google.zxing:core:3.5.3")
-	implementation("com.google.zxing:javase:3.5.3") // for BufferedImage encoder
+	implementation("com.google.zxing:core:3.5.4")
+	implementation("com.google.zxing:javase:3.5.4") // for BufferedImage encoder
 
 	// For magic link
 	implementation("org.springframework.boot:spring-boot-starter-mail")
@@ -49,7 +49,7 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
 	// Generate thumbnails
-	implementation("net.coobird:thumbnailator:0.4.20")
+	implementation("net.coobird:thumbnailator:0.4.21")
 
 	// Purely for icon svg convertion for the static map
 	implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
@@ -57,9 +57,9 @@ dependencies {
 	implementation("org.apache.xmlgraphics:batik-codec:1.19")
 
 	// For marker up and download to S3
-	implementation(platform("software.amazon.awssdk:bom:2.17.292"))
-	implementation("software.amazon.awssdk:s3-transfer-manager:2.19.13")
-	implementation("software.amazon.awssdk.crt:aws-crt:0.21.0")
+	implementation(platform("software.amazon.awssdk:bom:2.47.3"))
+	implementation("software.amazon.awssdk:s3-transfer-manager")
+	implementation("software.amazon.awssdk.crt:aws-crt:0.47.3")
 	implementation("software.amazon.awssdk:s3")
 	implementation("software.amazon.awssdk:netty-nio-client")
 
@@ -82,9 +82,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 	}
-	testImplementation("org.mockito:mockito-core:5.19.0")
-	testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
-	testImplementation("org.mockito:mockito-inline:5.2.0") // to mock final classes
+	testImplementation("org.mockito:mockito-core:5.23.0")
+	testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
 
 }
 
