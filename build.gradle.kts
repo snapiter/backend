@@ -85,6 +85,11 @@ dependencies {
 	testImplementation("org.mockito:mockito-core:5.23.0")
 	testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
 
+	// Testcontainers for full-stack integration tests against a real Postgres (versions from the Spring Boot BOM)
+	testImplementation("org.springframework.boot:spring-boot-testcontainers")
+	testImplementation("org.testcontainers:junit-jupiter")
+	testImplementation("org.testcontainers:postgresql")
+
 }
 
 kotlin {
@@ -95,4 +100,8 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// Testcontainers' shaded docker-java falls back to API version 1.32 when it can't detect one,
+	// and modern Docker Engine (min API 1.40) rejects that. The shaded config reads the version
+	// from the `api.version` system property. Overridable via -Dapi.version=...
+	systemProperty("api.version", System.getProperty("api.version", "1.43"))
 }
