@@ -35,7 +35,7 @@ import java.util.UUID
 )
 @AutoConfigureWebTestClient(timeout = "PT30S")
 @Testcontainers
-class DeviceTripPositionsFlowIntegrationTest {
+class SnapiterFlowIntergrationTest {
     companion object {
         @Container
         @JvmStatic
