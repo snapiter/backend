@@ -1,12 +1,11 @@
 package com.snapiter.backend.integration
 
+import com.snapiter.backend.api.trackable.CreateTrackableRequest
 import com.snapiter.backend.api.trackable.CreateTripRequest
 import com.snapiter.backend.api.trackable.PositionRequest
 import com.snapiter.backend.api.trackable.QuickCreateRes
 import com.snapiter.backend.api.trackable.RegisterDevice
 import com.snapiter.backend.model.trackable.positionreport.PositionReport
-import com.snapiter.backend.model.trackable.trackable.Trackable
-import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import com.snapiter.backend.model.trackable.trip.PositionType
 import com.snapiter.backend.model.users.User
 import com.snapiter.backend.model.users.UserRepository
@@ -61,14 +60,12 @@ class DeviceTripPositionsFlowIntegrationTest {
     lateinit var userRepository: UserRepository
 
     @Autowired
-    lateinit var trackableRepository: TrackableRepository
-
-    @Autowired
     lateinit var jwtService: JwtService
 
     @Test
     fun `should retrieve positions after registering a device and posting positions`() {
-        // --- Seed: a user that owns a trackable (FK chain requires the user first) ---
+        // --- Seed: a user directly (the trackable's user_id FKs users, and there is no
+        // create-user API in this flow); everything else goes through the real HTTP API. ---
         val userId = UUID.randomUUID()
         val unique = UUID.randomUUID().toString().take(8)
         val user = userRepository.save(
@@ -83,22 +80,21 @@ class DeviceTripPositionsFlowIntegrationTest {
             )
         ).block()!!
 
-        val trackableId = UUID.randomUUID().toString()
-        trackableRepository.save(
-            Trackable(
-                id = null,
-                trackableId = trackableId,
-                name = "E2E trackable",
-                title = "E2E",
-                hostName = "host-$unique",
-                createdAt = Instant.now(),
-                userId = userId
-            )
-        ).block()
-
         val userJwt = jwtService.issueAccessToken(user)
 
-        // --- 1. Issue a device token (USER auth, must own the trackable) ---
+        // --- 1. Create a trackable via the API (owner taken from the JWT principal) ---
+        val createdTrackable = webTestClient.post()
+            .uri("/api/trackables")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $userJwt")
+            .bodyValue(CreateTrackableRequest(name = "E2E trackable", title = "E2E", hostName = "host-$unique"))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(Map::class.java)
+            .returnResult().responseBody!!
+        val trackableId = createdTrackable["trackableId"] as String
+        assertThat(trackableId).isNotBlank()
+
+        // --- 2. Issue a device token (USER auth, must own the trackable) ---
         val issued = webTestClient.post()
             .uri("/api/trackables/$trackableId/devices/token")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $userJwt")
@@ -109,7 +105,7 @@ class DeviceTripPositionsFlowIntegrationTest {
         val deviceToken = issued.deviceToken
         assertThat(deviceToken).isNotBlank()
 
-        // --- 2. Register a device with that token (public endpoint) ---
+        // --- 3. Register a device with that token (public endpoint) ---
         val deviceId = "device-$unique"
         webTestClient.post()
             .uri("/api/trackables/$trackableId/devices/register")
@@ -120,7 +116,7 @@ class DeviceTripPositionsFlowIntegrationTest {
             .jsonPath("$.deviceId").isEqualTo(deviceId)
             .jsonPath("$.trackableId").isEqualTo(trackableId)
 
-        // --- 3. Submit multiple positions (device auth via X-Device-Token) ---
+        // --- 4. Submit multiple positions (device auth via X-Device-Token) ---
         val base = Instant.parse("2026-01-01T12:00:00Z")
         val positions = listOf(
             PositionRequest(latitude = 52.0, longitude = 4.0, createdAt = base),
@@ -134,7 +130,7 @@ class DeviceTripPositionsFlowIntegrationTest {
             .exchange()
             .expectStatus().isNoContent
 
-        // --- 4. Create a trip whose window brackets the positions (positionType ALL = exact rows) ---
+        // --- 5. Create a trip whose window brackets the positions (positionType ALL = exact rows) ---
         val slug = "summer-trip"
         webTestClient.post()
             .uri("/api/trackables/$trackableId/trips")
@@ -151,7 +147,7 @@ class DeviceTripPositionsFlowIntegrationTest {
             .exchange()
             .expectStatus().isNoContent
 
-        // --- 5. Read the positions back through the public trip endpoint and validate them ---
+        // --- 6. Read the positions back through the public trip endpoint and validate them ---
         val returned = webTestClient.get()
             .uri("/api/trackables/$trackableId/trips/$slug/positions")
             .exchange()
