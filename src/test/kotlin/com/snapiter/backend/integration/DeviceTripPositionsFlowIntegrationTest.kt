@@ -7,27 +7,32 @@ import com.snapiter.backend.api.trackable.QuickCreateRes
 import com.snapiter.backend.api.trackable.RegisterDevice
 import com.snapiter.backend.model.trackable.positionreport.PositionReport
 import com.snapiter.backend.model.trackable.trip.PositionType
-import com.snapiter.backend.model.users.User
-import com.snapiter.backend.model.users.UserRepository
-import com.snapiter.backend.security.JwtService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
+import org.springframework.mail.SimpleMailMessage
+import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 import java.time.Instant
-import java.time.OffsetDateTime
 import java.util.UUID
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    // The actuator mail health check can't build against a mocked JavaMailSender ("'beans' must not be empty").
+    properties = ["management.health.mail.enabled=false"]
+)
 @AutoConfigureWebTestClient(timeout = "PT30S")
 @Testcontainers
 class DeviceTripPositionsFlowIntegrationTest {
@@ -56,33 +61,40 @@ class DeviceTripPositionsFlowIntegrationTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
-    @Autowired
-    lateinit var userRepository: UserRepository
-
-    @Autowired
-    lateinit var jwtService: JwtService
+    // Mocked so the magic-link email is never actually sent (no SMTP); we capture the token from it.
+    @MockitoBean
+    lateinit var mailSender: JavaMailSender
 
     @Test
     fun `should retrieve positions after registering a device and posting positions`() {
-        // --- Seed: a user directly (the trackable's user_id FKs users, and there is no
-        // create-user API in this flow); everything else goes through the real HTTP API. ---
-        val userId = UUID.randomUUID()
         val unique = UUID.randomUUID().toString().take(8)
-        val user = userRepository.save(
-            User(
-                id = null,
-                userId = userId,
-                email = "e2e-$unique@example.com",
-                emailVerified = true,
-                displayName = "E2E",
-                createdAt = OffsetDateTime.now(),
-                lastLoginAt = null
-            )
-        ).block()!!
+        val email = "e2e-$unique@example.com"
 
-        val userJwt = jwtService.issueAccessToken(user)
+        // --- 1. Request a magic link: this is what creates the user row (email is mocked out) ---
+        webTestClient.post()
+            .uri("/api/auth/login/email/request")
+            .bodyValue(mapOf("email" to email))
+            .exchange()
+            .expectStatus().isOk
 
-        // --- 1. Create a trackable via the API (owner taken from the JWT principal) ---
+        // The raw magic-link token is delivered only by email (the DB stores just its hash),
+        // so recover it from the message passed to the mocked JavaMailSender.
+        val mail = argumentCaptor<SimpleMailMessage>()
+        verify(mailSender).send(mail.capture())
+        val magicToken = Regex("token=([A-Za-z0-9_-]+)").find(mail.firstValue.text!!)!!.groupValues[1]
+
+        // --- 2. Consume the magic link: verifies the user and returns an access token (JWT) ---
+        val tokens = webTestClient.post()
+            .uri("/api/auth/login/email/consume")
+            .bodyValue(mapOf("token" to magicToken))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(Map::class.java)
+            .returnResult().responseBody!!
+        val userJwt = tokens["accessToken"] as String
+        assertThat(userJwt).isNotBlank()
+
+        // --- 3. Create a trackable via the API (owner taken from the JWT principal) ---
         val createdTrackable = webTestClient.post()
             .uri("/api/trackables")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $userJwt")
@@ -94,7 +106,7 @@ class DeviceTripPositionsFlowIntegrationTest {
         val trackableId = createdTrackable["trackableId"] as String
         assertThat(trackableId).isNotBlank()
 
-        // --- 2. Issue a device token (USER auth, must own the trackable) ---
+        // --- 4. Issue a device token (USER auth, must own the trackable) ---
         val issued = webTestClient.post()
             .uri("/api/trackables/$trackableId/devices/token")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $userJwt")
@@ -105,7 +117,7 @@ class DeviceTripPositionsFlowIntegrationTest {
         val deviceToken = issued.deviceToken
         assertThat(deviceToken).isNotBlank()
 
-        // --- 3. Register a device with that token (public endpoint) ---
+        // --- 5. Register a device with that token (public endpoint) ---
         val deviceId = "device-$unique"
         webTestClient.post()
             .uri("/api/trackables/$trackableId/devices/register")
@@ -116,7 +128,7 @@ class DeviceTripPositionsFlowIntegrationTest {
             .jsonPath("$.deviceId").isEqualTo(deviceId)
             .jsonPath("$.trackableId").isEqualTo(trackableId)
 
-        // --- 4. Submit multiple positions (device auth via X-Device-Token) ---
+        // --- 6. Submit multiple positions (device auth via X-Device-Token) ---
         val base = Instant.parse("2026-01-01T12:00:00Z")
         val positions = listOf(
             PositionRequest(latitude = 52.0, longitude = 4.0, createdAt = base),
@@ -130,7 +142,7 @@ class DeviceTripPositionsFlowIntegrationTest {
             .exchange()
             .expectStatus().isNoContent
 
-        // --- 5. Create a trip whose window brackets the positions (positionType ALL = exact rows) ---
+        // --- 7. Create a trip whose window brackets the positions (positionType ALL = exact rows) ---
         val slug = "summer-trip"
         webTestClient.post()
             .uri("/api/trackables/$trackableId/trips")
@@ -147,7 +159,7 @@ class DeviceTripPositionsFlowIntegrationTest {
             .exchange()
             .expectStatus().isNoContent
 
-        // --- 6. Read the positions back through the public trip endpoint and validate them ---
+        // --- 8. Read the positions back through the public trip endpoint and validate them ---
         val returned = webTestClient.get()
             .uri("/api/trackables/$trackableId/trips/$slug/positions")
             .exchange()
