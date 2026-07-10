@@ -12,8 +12,9 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -30,7 +31,6 @@ import java.util.UUID
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-    // The actuator mail health check can't build against a mocked JavaMailSender ("'beans' must not be empty").
     properties = ["management.health.mail.enabled=false"]
 )
 @AutoConfigureWebTestClient(timeout = "PT30S")
@@ -38,20 +38,17 @@ import java.util.UUID
 class SnapiterFlowIntergrationTest {
     companion object {
         @Container
-        @JvmStatic
+        @ServiceConnection
         val postgres = PostgreSQLContainer(DockerImageName.parse("postgres:17"))
 
         @JvmStatic
         @DynamicPropertySource
         fun props(registry: DynamicPropertyRegistry) {
-            // App runtime talks R2DBC...
             registry.add("spring.r2dbc.url") {
                 "r2dbc:postgresql://${postgres.host}:${postgres.getMappedPort(5432)}/${postgres.databaseName}"
             }
             registry.add("spring.r2dbc.username") { postgres.username }
             registry.add("spring.r2dbc.password") { postgres.password }
-            // ...while Flyway needs a JDBC url. application.yml sets an explicit spring.flyway.url
-            // (localhost) which would otherwise win, so we must point Flyway at the container too.
             registry.add("spring.flyway.url") { postgres.jdbcUrl }
             registry.add("spring.flyway.user") { postgres.username }
             registry.add("spring.flyway.password") { postgres.password }
@@ -61,7 +58,6 @@ class SnapiterFlowIntergrationTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
-    // Mocked so the magic-link email is never actually sent (no SMTP); we capture the token from it.
     @MockitoBean
     lateinit var mailSender: JavaMailSender
 
@@ -70,20 +66,16 @@ class SnapiterFlowIntergrationTest {
         val unique = UUID.randomUUID().toString().take(8)
         val email = "e2e-$unique@example.com"
 
-        // --- 1. Request a magic link: this is what creates the user row (email is mocked out) ---
         webTestClient.post()
             .uri("/api/auth/login/email/request")
             .bodyValue(mapOf("email" to email))
             .exchange()
             .expectStatus().isOk
 
-        // The raw magic-link token is delivered only by email (the DB stores just its hash),
-        // so recover it from the message passed to the mocked JavaMailSender.
         val mail = argumentCaptor<SimpleMailMessage>()
         verify(mailSender).send(mail.capture())
         val magicToken = Regex("token=([A-Za-z0-9_-]+)").find(mail.firstValue.text!!)!!.groupValues[1]
 
-        // --- 2. Consume the magic link: verifies the user and returns an access token (JWT) ---
         val tokens = webTestClient.post()
             .uri("/api/auth/login/email/consume")
             .bodyValue(mapOf("token" to magicToken))
@@ -94,7 +86,6 @@ class SnapiterFlowIntergrationTest {
         val userJwt = tokens["accessToken"] as String
         assertThat(userJwt).isNotBlank()
 
-        // --- 3. Create a trackable via the API (owner taken from the JWT principal) ---
         val createdTrackable = webTestClient.post()
             .uri("/api/trackables")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $userJwt")
@@ -106,7 +97,6 @@ class SnapiterFlowIntergrationTest {
         val trackableId = createdTrackable["trackableId"] as String
         assertThat(trackableId).isNotBlank()
 
-        // --- 4. Issue a device token (USER auth, must own the trackable) ---
         val issued = webTestClient.post()
             .uri("/api/trackables/$trackableId/devices/token")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $userJwt")
@@ -117,7 +107,6 @@ class SnapiterFlowIntergrationTest {
         val deviceToken = issued.deviceToken
         assertThat(deviceToken).isNotBlank()
 
-        // --- 5. Register a device with that token (public endpoint) ---
         val deviceId = "device-$unique"
         webTestClient.post()
             .uri("/api/trackables/$trackableId/devices/register")
@@ -128,7 +117,6 @@ class SnapiterFlowIntergrationTest {
             .jsonPath("$.deviceId").isEqualTo(deviceId)
             .jsonPath("$.trackableId").isEqualTo(trackableId)
 
-        // --- 6. Submit multiple positions (device auth via X-Device-Token) ---
         val base = Instant.parse("2026-01-01T12:00:00Z")
         val positions = listOf(
             PositionRequest(latitude = 52.0, longitude = 4.0, createdAt = base),
@@ -142,7 +130,6 @@ class SnapiterFlowIntergrationTest {
             .exchange()
             .expectStatus().isNoContent
 
-        // --- 7. Create a trip whose window brackets the positions (positionType ALL = exact rows) ---
         val slug = "summer-trip"
         webTestClient.post()
             .uri("/api/trackables/$trackableId/trips")
@@ -159,7 +146,6 @@ class SnapiterFlowIntergrationTest {
             .exchange()
             .expectStatus().isNoContent
 
-        // --- 8. Read the positions back through the public trip endpoint and validate them ---
         val returned = webTestClient.get()
             .uri("/api/trackables/$trackableId/trips/$slug/positions")
             .exchange()
@@ -168,7 +154,6 @@ class SnapiterFlowIntergrationTest {
             .returnResult().responseBody!!.filterNotNull()
 
         assertThat(returned).hasSize(3)
-        // Endpoint orders newest-first
         assertThat(returned.map { it.createdAt }).containsExactly(
             base.plusSeconds(120), base.plusSeconds(60), base
         )

@@ -8,10 +8,12 @@ import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import com.snapiter.backend.security.TrackableSecurityService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
@@ -19,11 +21,19 @@ import java.util.UUID
 
 @WebFluxTest(controllers = [DeviceAlertController::class])
 @Import(TestSecurityConfig::class, TrackableSecurityService::class)
-@AutoConfigureWebTestClient
 class DeviceAlertControllerTest {
 
     @Autowired
+    lateinit var context: ApplicationContext
     lateinit var webTestClient: WebTestClient
+
+    @BeforeEach
+    fun setUp() {
+        webTestClient = WebTestClient.bindToApplicationContext(context)
+            .apply(springSecurity())
+            .configureClient()
+            .build()
+    }
 
     @MockitoBean
     lateinit var deviceAlertService: DeviceAlertService
@@ -33,6 +43,7 @@ class DeviceAlertControllerTest {
 
     @MockitoBean
     lateinit var deviceRepository: DeviceRepository
+
 
     private val trackableId = "track-123"
     private val deviceId = "dev-abc"

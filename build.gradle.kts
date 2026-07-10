@@ -1,7 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.2.20"
 	kotlin("plugin.spring") version "2.2.20"
-	id("org.springframework.boot") version "4.0.0-M2"
+	id("org.springframework.boot") version "4.1.0"
 //	id("org.springframework.boot") version "3.5.5"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -28,7 +28,7 @@ dependencies {
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("tools.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("org.springframework:spring-jdbc")
 
@@ -82,13 +82,19 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 	}
+
+	testImplementation("org.springframework.boot:spring-boot-webflux-test")
+	testImplementation("org.springframework.boot:spring-boot-webtestclient")
+	testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
+
 	testImplementation("org.mockito:mockito-core:5.23.0")
 	testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
 
-	// Testcontainers for full-stack integration tests against a real Postgres (versions from the Spring Boot BOM)
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
-	testImplementation("org.testcontainers:junit-jupiter")
-	testImplementation("org.testcontainers:postgresql")
+	testImplementation("org.testcontainers:junit-jupiter:1.21.4")
+	testImplementation("org.testcontainers:postgresql:1.21.4")
+	testImplementation("org.testcontainers:r2dbc:1.21.4")
+	testImplementation("org.testcontainers:minio:1.21.4")
 
 }
 
@@ -100,8 +106,4 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-	// Testcontainers' shaded docker-java falls back to API version 1.32 when it can't detect one,
-	// and modern Docker Engine (min API 1.40) rejects that. The shaded config reads the version
-	// from the `api.version` system property. Overridable via -Dapi.version=...
-	systemProperty("api.version", System.getProperty("api.version", "1.43"))
 }
