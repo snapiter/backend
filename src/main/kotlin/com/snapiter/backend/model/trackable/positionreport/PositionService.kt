@@ -23,6 +23,12 @@ class PositionService(
                 return@flatMapMany Flux.empty()
             }
 
+            if (positions.any { it.latitude !in -90.0..90.0 || it.longitude !in -180.0..180.0 }) {
+                return@flatMapMany Flux.error(
+                    InvalidCoordinateException("latitude must be in [-90, 90] and longitude in [-180, 180]")
+                )
+            }
+
             val now = Instant.now()
             if (positions.any { it.createdAt?.isAfter(now) == true }) {
                 return@flatMapMany Flux.error(
@@ -94,3 +100,5 @@ class PositionService(
 }
 
 class PositionInFutureException(msg: String) : RuntimeException(msg)
+
+class InvalidCoordinateException(msg: String) : RuntimeException(msg)

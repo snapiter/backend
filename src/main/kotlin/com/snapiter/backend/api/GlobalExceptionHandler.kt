@@ -1,6 +1,7 @@
 package com.snapiter.backend.api
 
 import com.snapiter.backend.model.trackable.devices.DeviceNotFoundException
+import com.snapiter.backend.model.trackable.positionreport.InvalidCoordinateException
 import com.snapiter.backend.model.trackable.positionreport.PositionInFutureException
 import com.snapiter.backend.model.trackable.devices.tokens.UnauthorizedTokenException
 import com.snapiter.backend.model.trackable.devices.tokens.UnclaimedTokenNotFound
@@ -90,6 +91,15 @@ class GlobalExceptionHandler {
         val errorResponse = ErrorResponse(
             error = "position_in_future",
             message = ex.message ?: "createdAt must not be in the future"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
+    }
+
+    @ExceptionHandler(InvalidCoordinateException::class)
+    fun handleInvalidCoordinate(ex: InvalidCoordinateException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "invalid_coordinate",
+            message = ex.message ?: "Coordinates are out of range"
         )
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
     }

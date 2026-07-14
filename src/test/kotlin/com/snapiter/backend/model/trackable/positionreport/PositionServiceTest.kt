@@ -136,6 +136,25 @@ class PositionServiceTest {
     }
 
     @Test
+    fun `should reject a position when coordinates are out of bounds`() {
+        Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId)))
+            .thenReturn(Mono.just(device()))
+
+        val result = positionService.report(
+            trackableId,
+            deviceId,
+            listOf(PositionRequest(latitude = 99.0, longitude = 2.0, createdAt = Instant.parse("2025-01-01T10:00:00Z")))
+        )
+
+        StepVerifier.create(result)
+            .expectError(InvalidCoordinateException::class.java)
+            .verify()
+
+        verify(deviceRepository, never()).save(any())
+        verify(positionReportRepository, never()).saveAll(any<Iterable<PositionReport>>())
+    }
+
+    @Test
     fun `should throw device not found`() {
         Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId)))
             .thenReturn(Mono.empty())
