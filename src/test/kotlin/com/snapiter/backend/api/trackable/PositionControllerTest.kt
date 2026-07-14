@@ -7,6 +7,7 @@ import com.snapiter.backend.model.trackable.positionreport.InvalidCoordinateExce
 import com.snapiter.backend.model.trackable.positionreport.PositionInFutureException
 import com.snapiter.backend.model.trackable.positionreport.PositionService
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -85,6 +86,53 @@ class PositionControllerTest {
         val body = """
           [{ "latitude": 52.37, "longitude": 4.90, "createdAt": "2025-09-12T09:00:00Z" }]
         """.trimIndent()
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables/$trackableId/$deviceId/positions")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isNoContent
+
+        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
+        verifyNoMoreInteractions(positionService)
+    }
+
+    @Test
+    fun `should create a single position without createdAt`() {
+        val trackableId = "t-123"
+        val deviceId = "d-456"
+
+        val reqCaptor = argumentCaptor<List<PositionRequest>>()
+
+        whenever(positionService.report(eq(trackableId), eq(deviceId), reqCaptor.capture()))
+            .thenReturn(Flux.empty())
+
+        val body = """{ "latitude": 52.3702, "longitude": 4.8952 }"""
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables/$trackableId/$deviceId/position")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isNoContent
+
+        assertNull(reqCaptor.firstValue[0].createdAt)
+    }
+
+    @Test
+    fun `should create multiple positions without createdAt`() {
+        val trackableId = "t-123"
+        val deviceId = "d-456"
+
+        whenever(positionService.report(eq(trackableId), eq(deviceId), any<List<PositionRequest>>()))
+            .thenReturn(Flux.empty())
+
+        val body = """[{ "latitude": 52.37, "longitude": 4.90 }]"""
 
         webTestClient
             .withDevicePrincipal()
