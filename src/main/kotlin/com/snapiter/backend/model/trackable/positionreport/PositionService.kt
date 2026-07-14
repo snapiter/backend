@@ -20,6 +20,10 @@ class PositionService(
 ) {
     fun report(trackableId: String, deviceId: String, positions: List<PositionRequest>): Flux<PositionReport> {
         return ensureDevice(trackableId, deviceId).flatMapMany { device ->
+            if (positions.isEmpty()) {
+                return@flatMapMany Flux.empty()
+            }
+
             val reports = positions.map { position ->
                 val ts = position.createdAt ?: Instant.now()
                 PositionReport.createFromLatAndLong(trackableId, position.latitude, position.longitude, ts)
