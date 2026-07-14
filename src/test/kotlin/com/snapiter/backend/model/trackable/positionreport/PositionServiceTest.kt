@@ -40,13 +40,13 @@ class PositionServiceTest {
         positionService = PositionService(trackableRepository, deviceRepository, positionReportRepository)
     }
 
-    private fun device() = Device(
+    private fun device(lastReportedAt: Instant = Instant.now().minus(Duration.ofDays(1))) = Device(
         id = 1L,
         trackableId = trackableId,
         deviceId = deviceId,
         name = "NAME",
         createdAt = Instant.now().minus(Duration.ofDays(1)),
-        lastReportedAt = Instant.now().minus(Duration.ofDays(1))
+        lastReportedAt = lastReportedAt
     )
 
     @Test
@@ -69,7 +69,7 @@ class PositionServiceTest {
 
         val captor: ArgumentCaptor<Device> = ArgumentCaptor.forClass(Device::class.java)
         Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId)))
-            .thenReturn(Mono.just(device()))
+            .thenReturn(Mono.just(device(lastReportedAt = Instant.parse("2024-01-01T00:00:00Z"))))
         Mockito.`when`(deviceRepository.save(captor.capture()))
             .thenAnswer { Mono.just(it.arguments[0] as Device) }
         Mockito.`when`(positionReportRepository.saveAll(any<Iterable<PositionReport>>()))
@@ -87,6 +87,32 @@ class PositionServiceTest {
             .verifyComplete()
 
         assertEquals(later, captor.value.lastReportedAt)
+    }
+
+    @Test
+    fun `should not update last reported if the date is before an earlier last reported`() {
+        val existingLastReported = Instant.parse("2025-06-01T00:00:00Z")
+
+        val captor: ArgumentCaptor<Device> = ArgumentCaptor.forClass(Device::class.java)
+        Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId)))
+            .thenReturn(Mono.just(device(lastReportedAt = existingLastReported)))
+        Mockito.`when`(deviceRepository.save(captor.capture()))
+            .thenAnswer { Mono.just(it.arguments[0] as Device) }
+        Mockito.`when`(positionReportRepository.saveAll(any<Iterable<PositionReport>>()))
+            .thenAnswer { Flux.fromIterable(it.arguments[0] as Iterable<PositionReport>) }
+
+        // batch is older than the device's current lastReportedAt
+        val positions = listOf(
+            PositionRequest(latitude = 1.0, longitude = 2.0, createdAt = Instant.parse("2025-01-01T10:00:00Z"))
+        )
+
+        val result = positionService.report(trackableId, deviceId, positions)
+
+        StepVerifier.create(result)
+            .expectNextCount(1)
+            .verifyComplete()
+
+        assertEquals(existingLastReported, captor.value.lastReportedAt)
     }
 
     @Test

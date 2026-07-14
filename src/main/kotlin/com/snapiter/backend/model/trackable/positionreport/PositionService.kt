@@ -35,8 +35,9 @@ class PositionService(
                 PositionReport.createFromLatAndLong(trackableId, position.latitude, position.longitude, ts)
             }
 
-            // update device.lastReportedAt = last report's timestamp
-            device.lastReportedAt = reports.maxOf { it.createdAt!! }
+            // advance lastReportedAt only forward, so an out-of-order/old batch never rewinds "last seen"
+            val batchMax = positions.maxOf { it.createdAt ?: now }
+            device.lastReportedAt = maxOf(device.lastReportedAt ?: batchMax, batchMax)
 
             deviceRepository.save(device)
                 .thenMany(positionReportRepository.saveAll(reports))
