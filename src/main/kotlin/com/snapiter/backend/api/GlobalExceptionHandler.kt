@@ -1,5 +1,6 @@
 package com.snapiter.backend.api
 
+import com.snapiter.backend.model.trackable.devices.DeviceNotFoundException
 import com.snapiter.backend.model.trackable.devices.tokens.UnauthorizedTokenException
 import com.snapiter.backend.model.trackable.devices.tokens.UnclaimedTokenNotFound
 import com.snapiter.backend.security.ExpiredTokenException
@@ -77,6 +78,15 @@ class GlobalExceptionHandler {
     }
 
 
+
+    @ExceptionHandler(DeviceNotFoundException::class)
+    fun handleDeviceNotFound(ex: DeviceNotFoundException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "device_not_found",
+            message = ex.message ?: "Device not found"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse))
+    }
 
     @ExceptionHandler(ExpiredJwtException::class)
     fun invalidJwtTokenException(ex: ExpiredJwtException): Mono<ResponseEntity<ErrorResponse>> {

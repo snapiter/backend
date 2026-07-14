@@ -2,11 +2,10 @@ package com.snapiter.backend.model.trackable.positionreport
 
 import com.snapiter.backend.api.trackable.PositionRequest
 import com.snapiter.backend.model.trackable.devices.Device
+import com.snapiter.backend.model.trackable.devices.DeviceNotFoundException
 import com.snapiter.backend.model.trackable.devices.DeviceRepository
 import com.snapiter.backend.model.trackable.trackable.TrackableRepository
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import java.time.Instant
 import com.snapiter.backend.model.trackable.trip.PositionType
@@ -82,7 +81,7 @@ class PositionService(
     private fun ensureDevice(trackableId: String, deviceId: String): Mono<Device> =
         deviceRepository.findByDeviceIdAndTrackableId(deviceId, trackableId)
             .switchIfEmpty(
-                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable"))
+                Mono.error(DeviceNotFoundException("Device not found for trackable"))
             )
 
 }

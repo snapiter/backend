@@ -2,6 +2,7 @@ package com.snapiter.backend.model.trackable.positionreport
 
 import com.snapiter.backend.api.trackable.PositionRequest
 import com.snapiter.backend.model.trackable.devices.Device
+import com.snapiter.backend.model.trackable.devices.DeviceNotFoundException
 import com.snapiter.backend.model.trackable.devices.DeviceRepository
 import com.snapiter.backend.model.trackable.trackable.TrackableRepository
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +15,6 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
@@ -101,7 +101,7 @@ class PositionServiceTest {
         )
 
         StepVerifier.create(result)
-            .expectError(ResponseStatusException::class.java)
+            .expectError(DeviceNotFoundException::class.java)
             .verify()
 
         verify(deviceRepository, never()).save(any())
