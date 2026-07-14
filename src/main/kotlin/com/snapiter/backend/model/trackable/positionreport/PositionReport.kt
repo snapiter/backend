@@ -16,9 +16,6 @@ data class PositionReport (
     val createdAt: Instant?
 ) {
     companion object {
-        fun createFromLatAndLong(trackableId: String, latitude: Double, longitude: Double): PositionReport {
-            return PositionReport(null, trackableId, latitude, longitude, null)
-        }
         fun createFromLatAndLong(trackableId: String, latitude: Double, longitude: Double, createdAt: Instant): PositionReport {
             return PositionReport(null, trackableId, latitude, longitude, createdAt)
         }
