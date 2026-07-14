@@ -2,6 +2,7 @@ package com.snapiter.backend.api.trackable
 
 import com.snapiter.backend.api.GlobalExceptionHandler
 import com.snapiter.backend.model.trackable.devices.DeviceNotFoundException
+import com.snapiter.backend.model.trackable.positionreport.PositionInFutureException
 import com.snapiter.backend.model.trackable.positionreport.PositionService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -32,6 +33,23 @@ class PositionErrorResponseTest {
             .expectBody()
             .jsonPath("$.error").isEqualTo("device_not_found")
             .jsonPath("$.message").isEqualTo("Device not found for trackable")
+            .jsonPath("$.fields").doesNotExist()
+    }
+
+    @Test
+    fun `should map position in the future to the standard error response`() {
+        whenever(positionService.report(any(), any(), any()))
+            .thenReturn(Flux.error(PositionInFutureException("createdAt must not be in the future")))
+
+        client.post()
+            .uri("/api/trackables/track-1/dev-1/position")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""{"latitude": 1.0, "longitude": 2.0, "createdAt": "2010-01-01T00:00:00Z"}""")
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("position_in_future")
+            .jsonPath("$.message").isEqualTo("createdAt must not be in the future")
             .jsonPath("$.fields").doesNotExist()
     }
 }

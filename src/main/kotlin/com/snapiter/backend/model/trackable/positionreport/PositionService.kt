@@ -23,8 +23,15 @@ class PositionService(
                 return@flatMapMany Flux.empty()
             }
 
+            val now = Instant.now()
+            if (positions.any { it.createdAt?.isAfter(now) == true }) {
+                return@flatMapMany Flux.error(
+                    PositionInFutureException("createdAt must not be in the future")
+                )
+            }
+
             val reports = positions.map { position ->
-                val ts = position.createdAt ?: Instant.now()
+                val ts = position.createdAt ?: now
                 PositionReport.createFromLatAndLong(trackableId, position.latitude, position.longitude, ts)
             }
 
@@ -83,5 +90,6 @@ class PositionService(
             .switchIfEmpty(
                 Mono.error(DeviceNotFoundException("Device not found for trackable"))
             )
-
 }
+
+class PositionInFutureException(msg: String) : RuntimeException(msg)

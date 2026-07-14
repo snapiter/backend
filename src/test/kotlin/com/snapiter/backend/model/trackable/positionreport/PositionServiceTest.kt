@@ -90,7 +90,27 @@ class PositionServiceTest {
     }
 
     @Test
-    fun `should give 404 on missing device`() {
+    fun `should reject a position in the future`() {
+        Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId)))
+            .thenReturn(Mono.just(device()))
+
+        val future = Instant.now().plus(Duration.ofDays(1))
+        val result = positionService.report(
+            trackableId,
+            deviceId,
+            listOf(PositionRequest(latitude = 1.0, longitude = 2.0, createdAt = future))
+        )
+
+        StepVerifier.create(result)
+            .expectError(PositionInFutureException::class.java)
+            .verify()
+
+        verify(deviceRepository, never()).save(any())
+        verify(positionReportRepository, never()).saveAll(any<Iterable<PositionReport>>())
+    }
+
+    @Test
+    fun `should throw device not found`() {
         Mockito.`when`(deviceRepository.findByDeviceIdAndTrackableId(eq(deviceId), eq(trackableId)))
             .thenReturn(Mono.empty())
 

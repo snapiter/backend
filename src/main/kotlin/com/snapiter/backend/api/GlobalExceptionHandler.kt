@@ -1,6 +1,7 @@
 package com.snapiter.backend.api
 
 import com.snapiter.backend.model.trackable.devices.DeviceNotFoundException
+import com.snapiter.backend.model.trackable.positionreport.PositionInFutureException
 import com.snapiter.backend.model.trackable.devices.tokens.UnauthorizedTokenException
 import com.snapiter.backend.model.trackable.devices.tokens.UnclaimedTokenNotFound
 import com.snapiter.backend.security.ExpiredTokenException
@@ -66,8 +67,6 @@ class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse))
     }
 
-
-
     @ExceptionHandler(UnclaimedTokenNotFound::class)
     fun unclaimedTokenException(ex: UnclaimedTokenNotFound): Mono<ResponseEntity<ErrorResponse>> {
         val errorResponse = ErrorResponse(
@@ -77,8 +76,6 @@ class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse))
     }
 
-
-
     @ExceptionHandler(DeviceNotFoundException::class)
     fun handleDeviceNotFound(ex: DeviceNotFoundException): Mono<ResponseEntity<ErrorResponse>> {
         val errorResponse = ErrorResponse(
@@ -86,6 +83,15 @@ class GlobalExceptionHandler {
             message = ex.message ?: "Device not found"
         )
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse))
+    }
+
+    @ExceptionHandler(PositionInFutureException::class)
+    fun handlePositionInFuture(ex: PositionInFutureException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "position_in_future",
+            message = ex.message ?: "createdAt must not be in the future"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
     }
 
     @ExceptionHandler(ExpiredJwtException::class)
