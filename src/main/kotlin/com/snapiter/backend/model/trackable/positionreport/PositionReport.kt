@@ -13,7 +13,7 @@ data class PositionReport (
     val latitude: Double,
     val longitude: Double,
 
-    val createdAt: Instant?
+    val createdAt: Instant
 ) {
     companion object {
         fun createFromLatAndLong(trackableId: String, latitude: Double, longitude: Double, createdAt: Instant): PositionReport {
