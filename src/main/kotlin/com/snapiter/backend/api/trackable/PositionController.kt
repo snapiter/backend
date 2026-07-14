@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
+import jakarta.validation.constraints.PastOrPresent
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -79,5 +80,6 @@ data class PositionRequest(
     val longitude: Double,
 
     // Optional client timestamp in UTC format (e.g., "2025-01-15T10:30:00Z"); if null, server time is used
+    @field:PastOrPresent(message = "createdAt must not be in the future")
     val createdAt: Instant? = null
 )

@@ -43,57 +43,9 @@ class PositionControllerTest {
     @MockitoBean
     lateinit var positionService: PositionService
 
-    @Test
-    fun `POST single position returns 204 when device exists`() {
-        val trackableId = "t-123"
-        val deviceId = "d-456"
-
-        whenever(positionService.report(eq(trackableId), eq(deviceId), any<List<PositionRequest>>()))
-            .thenReturn(Flux.empty())
-
-        val body = """
-          { "latitude": 52.37, "longitude": 4.90, "createdAt": "2025-09-12T09:00:00Z" }
-        """.trimIndent()
-
-        webTestClient
-            .withDevicePrincipal()
-            .post()
-            .uri("/api/trackables/$trackableId/$deviceId/position")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .exchange()
-            .expectStatus().isNoContent
-
-        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
-        verifyNoMoreInteractions(positionService)
-    }
 
     @Test
-    fun `POST single position returns 404 when device not found`() {
-        val trackableId = "trackableId"
-        val deviceId = "deviceId"
-
-        whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
-            .thenReturn(Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
-
-
-        val body = """{ "latitude": 52.37, "longitude": 4.90 }"""
-
-        webTestClient
-            .withDevicePrincipal()
-            .post()
-            .uri("/api/trackables/$trackableId/$deviceId/position")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .exchange()
-            .expectStatus().isNotFound
-
-        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
-        verifyNoMoreInteractions(positionService)
-    }
-
-    @Test
-    fun `POST uses client createdAt when provided`() {
+    fun `should create a single position`() {
         val trackableId = "t-123"
         val deviceId = "d-456"
         val clientTs = Instant.parse("2025-09-12T09:00:00Z")
@@ -119,14 +71,8 @@ class PositionControllerTest {
         assertEquals(clientTs, reqCaptor.firstValue[0].createdAt)
     }
 
-
-
-
-
-
-
     @Test
-    fun `POST multiple positions returns 204 when device exists`() {
+    fun `should create multiple positions`() {
         val trackableId = "t-123"
         val deviceId = "d-456"
 
@@ -149,4 +95,96 @@ class PositionControllerTest {
         verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
         verifyNoMoreInteractions(positionService)
     }
+
+    @Test
+    fun `should fail single position when device not found`() {
+        val trackableId = "trackableId"
+        val deviceId = "deviceId"
+
+        whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
+            .thenReturn(Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
+
+        val body = """{ "latitude": 52.37, "longitude": 4.90 }"""
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables/$trackableId/$deviceId/position")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isNotFound
+
+        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
+        verifyNoMoreInteractions(positionService)
+    }
+
+    @Test
+    fun `should fail multiple positions when device not found`() {
+        val trackableId = "trackableId"
+        val deviceId = "deviceId"
+
+        whenever(positionService.report(eq(trackableId), eq(deviceId), any()))
+            .thenReturn(Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found for trackable")))
+
+        val body = """[{ "latitude": 52.37, "longitude": 4.90, "createdAt": "2010-01-01T00:00:00Z" }]"""
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables/$trackableId/$deviceId/positions")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isNotFound
+
+        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
+        verifyNoMoreInteractions(positionService)
+    }
+
+    @Test
+    fun `should fail when position created at is in the future`() {
+        val trackableId = "t-123"
+        val deviceId = "d-456"
+
+        val body = """
+          { "latitude": 52.37, "longitude": 4.90, "createdAt": "2999-01-01T00:00:00Z" }
+        """.trimIndent()
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables/$trackableId/$deviceId/position")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("validation_error")
+            .jsonPath("$.fields.createdAt").exists()
+
+        verifyNoMoreInteractions(positionService)
+    }
+
+    @Test
+    fun `should fail multiple positions when position created at is in the future`() {
+        val trackableId = "t-123"
+        val deviceId = "d-456"
+
+        val body = """
+          [{ "latitude": 52.37, "longitude": 4.90, "createdAt": "2999-01-01T00:00:00Z" }]
+        """.trimIndent()
+
+        webTestClient
+            .withDevicePrincipal()
+            .post()
+            .uri("/api/trackables/$trackableId/$deviceId/positions")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isBadRequest
+
+        verifyNoMoreInteractions(positionService)
+    }
+
 }
