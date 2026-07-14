@@ -65,6 +65,9 @@ class PositionController(
         @PathVariable deviceId: String,
         @Valid @RequestBody requests: List<PositionRequest>
     ): Mono<ResponseEntity<Void>> {
+        if (requests.any { it.createdAt == null }) {
+            throw PositionValidationException("createdAt is required when uploading multiple positions")
+        }
         return positionService.report(trackableId, deviceId, requests)
             .then(Mono.just(ResponseEntity.noContent().build()))
     }
@@ -79,7 +82,8 @@ data class PositionRequest(
     @field:DecimalMax(value = "180.0", message = "longitude must be <= 180")
     val longitude: Double,
 
-    // Optional client timestamp in UTC format (e.g., "2025-01-15T10:30:00Z"); if null, server time is used
     @field:PastOrPresent(message = "createdAt must not be in the future")
     val createdAt: Instant? = null
 )
+
+class PositionValidationException(msg: String) : RuntimeException(msg)

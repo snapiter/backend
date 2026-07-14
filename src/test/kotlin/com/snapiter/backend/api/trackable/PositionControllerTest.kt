@@ -125,12 +125,9 @@ class PositionControllerTest {
     }
 
     @Test
-    fun `should create multiple positions without createdAt`() {
+    fun `should reject positions when no created date is given`() {
         val trackableId = "t-123"
         val deviceId = "d-456"
-
-        whenever(positionService.report(eq(trackableId), eq(deviceId), any<List<PositionRequest>>()))
-            .thenReturn(Flux.empty())
 
         val body = """[{ "latitude": 52.37, "longitude": 4.90 }]"""
 
@@ -141,9 +138,10 @@ class PositionControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
-            .expectStatus().isNoContent
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("validation_error")
 
-        verify(positionService, times(1)).report(eq(trackableId), eq(deviceId), any())
         verifyNoMoreInteractions(positionService)
     }
 

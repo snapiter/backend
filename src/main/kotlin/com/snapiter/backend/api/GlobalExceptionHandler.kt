@@ -9,6 +9,7 @@ import com.snapiter.backend.security.ExpiredTokenException
 import com.snapiter.backend.security.InvalidTokenException
 import com.snapiter.backend.security.UnauthorizedRefreshTokenException
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.snapiter.backend.api.trackable.PositionValidationException
 import io.jsonwebtoken.ExpiredJwtException
 import jakarta.mail.SendFailedException
 import org.springframework.dao.DuplicateKeyException
@@ -133,6 +134,15 @@ class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
     }
 
+    @ExceptionHandler(PositionValidationException::class)
+    fun handlePositionValidation(ex: PositionValidationException): Mono<ResponseEntity<ErrorResponse>> {
+        val errorResponse = ErrorResponse(
+            error = "validation_error",
+            message = ex.message ?: "The position created at is incorrect"
+        )
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse))
+    }
+
     @ExceptionHandler(ServerWebInputException::class)
     fun handleMalformedInput(ex: ServerWebInputException): Mono<ResponseEntity<ErrorResponse>> {
         val errorResponse = ErrorResponse(
@@ -153,7 +163,6 @@ class GlobalExceptionHandler {
     }
 
 }
-
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ErrorResponse(
